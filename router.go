@@ -20,7 +20,7 @@ func NewRouter() *Router {
 	return routers
 }
 
-// 注
+// 注册
 func (r *Router) Register(key string, value DisposeFunc) *Router {
 	r.handlersRWMutex.Lock()
 	defer r.handlersRWMutex.Unlock()
@@ -31,9 +31,11 @@ func (r *Router) Register(key string, value DisposeFunc) *Router {
 
 //获取
 func (r *Router) getHandlers(key string) (value DisposeFunc, ok bool) {
+	if len(r.router) <= 0 {
+		return nil, false
+	}
 	r.handlersRWMutex.RLock()
 	defer r.handlersRWMutex.RUnlock()
-
 	value, ok = r.router[key]
 	return
 }
