@@ -1,4 +1,4 @@
-module e7s
+module github.com/xiaoguking/e7s
 
 go 1.17
 
