@@ -9,7 +9,7 @@ type e7s struct {
 	Router *Router
 }
 
-func New() *e7s {
+func NewE7s() *e7s {
 	return &e7s{
 		Router: NewRouter(),
 	}

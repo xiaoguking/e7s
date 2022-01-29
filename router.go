@@ -6,6 +6,8 @@ import (
 
 type DisposeFunc func(c *E7sContext)
 
+type DisposeRouters map[string]DisposeFunc
+
 type Router struct {
 	router          map[string]DisposeFunc
 	handlersRWMutex sync.RWMutex
@@ -15,7 +17,7 @@ var routers *Router
 
 func NewRouter() *Router {
 	routers = &Router{
-		router: make(map[string]DisposeFunc),
+		router: make(DisposeRouters),
 	}
 	return routers
 }
