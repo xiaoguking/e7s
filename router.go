@@ -45,8 +45,3 @@ func (r *Router) getHandlers(key string) (value DisposeFunc, ok bool) {
 	value, ok = r.router[key]
 	return
 }
-
-func (r *Router) Use(middle Middle) {
-	r.middle = append(r.middle, middle)
-	routers = r
-}
