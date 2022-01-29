@@ -89,12 +89,10 @@ func onmessage(msg []byte, c *Client) {
 
 	if value, ok := routers.getHandlers(controllers); ok {
 		//请求中间件
-		if len(routers.middle) > 0 {
-			for _, v := range routers.middle {
-				if context.Next {
-					v(context)
-					break
-				}
+		for _, v := range routers.middle {
+			if context.Next {
+				v(context)
+				break
 			}
 		}
 		//业务处理中心

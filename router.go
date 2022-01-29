@@ -21,7 +21,7 @@ var routers *Router
 func NewRouter() *Router {
 	routers = &Router{
 		router: make(DisposeRouters),
-		middle: make([]Middle, 0),
+		middle: make([]Middle, 1),
 	}
 	return routers
 }
@@ -44,4 +44,9 @@ func (r *Router) getHandlers(key string) (value DisposeFunc, ok bool) {
 	defer r.handlersRWMutex.RUnlock()
 	value, ok = r.router[key]
 	return
+}
+
+func (r *Router) Use(middle Middle) {
+	r.middle = append(r.middle, middle)
+	routers = r
 }
