@@ -14,7 +14,7 @@ type Router struct {
 var routers *Router
 
 func NewRouter() *Router {
-	routers := &Router{
+	routers = &Router{
 		router: make(map[string]DisposeFunc),
 	}
 	return routers
