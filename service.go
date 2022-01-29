@@ -26,16 +26,17 @@ type Client struct {
 
 //消息体
 type Msg struct {
-	C       string
+	Cmd     string
 	Request map[string]interface{}
 }
 
 // 初始化
-func NewClient(addr string, socket *websocket.Conn, firstTime uint64) (client *Client) {
+func NewClient(addr string, socket *websocket.Conn, firstTime uint64, clients string) (client *Client) {
 
 	client = &Client{
 		Addr:          addr,
 		Socket:        socket,
+		Clients:       clients,
 		Send:          make(chan []byte, 100),
 		FirstTime:     firstTime,
 		HeartbeatTime: firstTime,
@@ -58,7 +59,7 @@ func (c *Client) reader() {
 		if err != nil {
 			break
 		}
-		log.Info("收到客户端消息 " + string(message))
+		log.Info("Description The client message was received " + string(message))
 		onmessage(message, c)
 	}
 }
@@ -77,7 +78,7 @@ func onmessage(msg []byte, c *Client) {
 		c.Send <- []byte("params error")
 		return
 	}
-	controllers := message.C
+	controllers := message.Cmd
 	context := &E7sContext{
 		Client:  c,
 		Manager: managers,

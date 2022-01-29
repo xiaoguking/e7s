@@ -20,7 +20,7 @@ type E7sContext struct {
 	//错误日志
 	Error string
 	//读写锁
-	sl sync.RWMutex
+	cLock sync.RWMutex
 }
 
 type response struct {
@@ -42,7 +42,7 @@ func (c *E7sContext) JSON(obj interface{}) {
 
 //获取请求参数
 func (c *E7sContext) GetRequest(key string) interface{} {
-	c.sl.RLock()
-	defer c.sl.RUnlock()
+	c.cLock.RLock()
+	defer c.cLock.RUnlock()
 	return c.Request[key]
 }

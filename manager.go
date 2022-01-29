@@ -175,7 +175,6 @@ func (manager *ClientManager) GetUserClients() (clients []*Client) {
 // 用户建立连接事件
 func (manager *ClientManager) EventRegister(client *Client) {
 	manager.AddClients(client)
-	client.Send <- []byte("连接成功")
 }
 
 // 用户断开连接

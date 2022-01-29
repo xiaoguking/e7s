@@ -20,16 +20,17 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
-	log.Info("webSocket 客户端建立连接:" + ws.RemoteAddr().String())
+	log.Info("webSocket The client establishes a connection:" + ws.RemoteAddr().String())
 
 	addr := ws.RemoteAddr().String()
 	currentTime := uint64(time.Now().Unix())
-	c := NewClient(addr, ws, currentTime)
+	clients := uniqueId()
+	c := NewClient(addr, ws, currentTime, clients)
 	managers.Register <- c
 	go c.writer()
 	c.reader()
 	defer func() {
-		log.Info("websocket 客户端断开连接" + ws.RemoteAddr().String())
+		log.Info("websocket The client is disconnected. Procedure" + ws.RemoteAddr().String())
 		managers.Unregister <- c
 		c.Socket.Close()
 	}()
