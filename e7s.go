@@ -5,17 +5,17 @@ import (
 	"net/http"
 )
 
-type e7s struct {
+type E7s struct {
 	Router *Router
 }
 
-func NewE7s() *e7s {
-	return &e7s{
+func NewE7s() *E7s {
+	return &E7s{
 		Router: NewRouter(),
 	}
 }
 
-func (e *e7s) Run(port string) error {
+func (e *E7s) Run(port string) error {
 
 	http.HandleFunc("/", Handle)
 	if err := http.ListenAndServe(":"+port, nil); err != nil {
