@@ -25,13 +25,15 @@ type E7sContext struct {
 
 type response struct {
 	Cmd      string      `json:"cmd"`
+	Status   int         `json:"status"`
 	Response interface{} `json:"response,omitempty"`
 }
 
 //向客户端 发送JSON消息
-func (c *E7sContext) JSON(obj interface{}) {
+func (c *E7sContext) JSON(status int, obj interface{}) {
 	res := response{}
 	res.Cmd = c.Cmd
+	res.Status = status
 	res.Response = obj
 	data, err := json.Marshal(res)
 	if err != nil {
