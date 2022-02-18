@@ -90,9 +90,8 @@ func onmessage(msg []byte, c *Client) {
 	if value, ok := routers.getHandlers(controllers); ok {
 		if len(routers.middle) > 0 {
 			for _, v := range routers.middle {
-				if context.Next {
+				if context.Next == true && v != nil {
 					v(context)
-					break
 				}
 			}
 		}
