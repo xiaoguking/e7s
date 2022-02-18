@@ -81,7 +81,7 @@ func onmessage(msg []byte, c *Client) {
 	controllers := message.Cmd
 	context := &E7sContext{
 		Client:  c,
-		Manager: managers,
+		Manager: Managers,
 		Request: message.Request,
 		Cmd:     controllers,
 		Next:    true,
