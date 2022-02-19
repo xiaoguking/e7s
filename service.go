@@ -78,6 +78,10 @@ func onmessage(msg []byte, c *Client) {
 		c.Send <- []byte("params error")
 		return
 	}
+	if message.Request == nil || message.Cmd == "" {
+		c.Send <- []byte("params error")
+		return
+	}
 	controllers := message.Cmd
 	context := &E7sContext{
 		Client:  c,
