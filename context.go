@@ -29,7 +29,6 @@ type response struct {
 	Response interface{} `json:"response,omitempty"`
 }
 
-//向客户端 发送JSON消息
 func (c *E7sContext) JSON(status int, obj interface{}) {
 	res := response{}
 	res.Cmd = c.Cmd
@@ -42,9 +41,12 @@ func (c *E7sContext) JSON(status int, obj interface{}) {
 	c.Client.Send <- data
 }
 
-//获取请求参数
-func (c *E7sContext) GetRequest(key string) interface{} {
+func (c *E7sContext) GetRequest(key string, defaults string) interface{} {
 	c.cLock.RLock()
 	defer c.cLock.RUnlock()
-	return c.Request[key]
+	if val, ok := c.Request[key]; ok == false {
+		return defaults
+	} else {
+		return val
+	}
 }
