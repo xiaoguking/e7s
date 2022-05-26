@@ -97,7 +97,7 @@ func (manager *ClientManager) AddClients(client *Client) {
 func (manager *ClientManager) DelClients(client *Client) {
 	manager.ClientsLock.Lock()
 	defer manager.ClientsLock.Unlock()
-
+	defer client.Socket.Close()
 	if _, ok := manager.Clients[client]; ok {
 		delete(manager.Clients, client)
 	}

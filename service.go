@@ -16,12 +16,13 @@ const (
 type Client struct {
 	Addr          string          // 客户端地址
 	Socket        *websocket.Conn // 用户连接
-	Clients       string          //客户端标识
+	Clients       string          // 客户端标识
 	Send          chan []byte     // 待发送的数据
 	UserId        string          // 用户Id，用户登录以后才有
 	FirstTime     uint64          // 首次连接时间
 	HeartbeatTime uint64          // 用户上次心跳时间
 	LoginTime     uint64          // 登录时间 登录以后才有
+	Token         string          //登陆token
 }
 
 //消息体
@@ -75,11 +76,9 @@ func onmessage(msg []byte, c *Client) {
 	var message Msg
 	err := json.Unmarshal(msg, &message)
 	if err != nil {
-		c.Send <- []byte("params error")
 		return
 	}
 	if message.Request == nil || message.Cmd == "" {
-		c.Send <- []byte("params error")
 		return
 	}
 	controllers := message.Cmd
