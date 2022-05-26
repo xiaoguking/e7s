@@ -13,6 +13,7 @@ type ClientManager struct {
 	UserLock    sync.RWMutex         // 读写锁
 	Register    chan *Client         // 连接连接处理
 	Login       chan *Login          // 用户登录处理
+	LoginOut    chan string          // 用户退出处理
 	Unregister  chan *Client         // 断开连接处理程序
 	Broadcast   chan []byte          // 广播 向全部成员发送数据
 }
@@ -97,7 +98,6 @@ func (manager *ClientManager) AddClients(client *Client) {
 func (manager *ClientManager) DelClients(client *Client) {
 	manager.ClientsLock.Lock()
 	defer manager.ClientsLock.Unlock()
-	defer client.Socket.Close()
 	if _, ok := manager.Clients[client]; ok {
 		delete(manager.Clients, client)
 	}
@@ -203,6 +203,23 @@ func (manager *ClientManager) EventUnregister(client *Client) {
 	}
 }
 
+//LoginOut
+func (manager *ClientManager) EventULoginOut(uid string) {
+	manager.UserLock.Lock()
+
+	defer manager.ClientsLock.Unlock()
+	defer manager.UserLock.Unlock()
+	if v, ok := manager.Users[uid]; ok {
+		for _, cs := range v {
+			cs.LoginTime = 0
+			cs.UserId = ""
+			manager.ClientsLock.Lock()
+			delete(manager.Clients, cs)
+		}
+		delete(manager.Users, uid)
+	}
+}
+
 //sendUid
 func (manager *ClientManager) SendToUid(uid string, msg []byte) {
 	client := manager.GetUserClient(uid)
@@ -250,6 +267,8 @@ func (manager *ClientManager) Start() {
 		case user := <-manager.Login:
 			//登陆事件
 			manager.AddUsers(user.Uid, user.C)
+		case uid := <-manager.LoginOut:
+			manager.EventULoginOut(uid)
 		case message := <-manager.Broadcast:
 			// 广播事件
 			clients := manager.GetClients()
