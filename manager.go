@@ -24,6 +24,7 @@ func NewClientManager() (clientManager *ClientManager) {
 		Users:      make(map[string][]*Client),
 		Register:   make(chan *Client, 1000),
 		Login:      make(chan *Login, 1000),
+		LoginOut:   make(chan string, 1000),
 		Unregister: make(chan *Client, 1000),
 		Broadcast:  make(chan []byte, 1000),
 	}
@@ -206,15 +207,11 @@ func (manager *ClientManager) EventUnregister(client *Client) {
 //LoginOut
 func (manager *ClientManager) EventULoginOut(uid string) {
 	manager.UserLock.Lock()
-
-	defer manager.ClientsLock.Unlock()
 	defer manager.UserLock.Unlock()
 	if v, ok := manager.Users[uid]; ok {
 		for _, cs := range v {
 			cs.LoginTime = 0
 			cs.UserId = ""
-			manager.ClientsLock.Lock()
-			delete(manager.Clients, cs)
 		}
 		delete(manager.Users, uid)
 	}
@@ -268,6 +265,7 @@ func (manager *ClientManager) Start() {
 			//登陆事件
 			manager.AddUsers(user.Uid, user.C)
 		case uid := <-manager.LoginOut:
+			//退出事件
 			manager.EventULoginOut(uid)
 		case message := <-manager.Broadcast:
 			// 广播事件
