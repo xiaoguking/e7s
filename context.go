@@ -29,6 +29,14 @@ type response struct {
 	Response interface{} `json:"response,omitempty"`
 }
 
+func (c *E7sContext) GetUid() (string, bool) {
+	uid := c.Client.UserId
+	if uid == "" {
+		return "", false
+	}
+	return uid, true
+}
+
 func (c *E7sContext) JSON(status int, obj interface{}) {
 	res := response{}
 	res.Cmd = c.Cmd

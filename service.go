@@ -103,7 +103,12 @@ func onmessage(msg []byte, c *Client) {
 		}
 	} else {
 		log.Debug("websocket router not")
-		c.Send <- []byte("websocket router not")
+		var res response
+		res.Cmd = controllers
+		res.Status = -1 //route
+		res.Response = nil
+		data, _ := json.Marshal(res)
+		c.Send <- data
 		return
 	}
 }
