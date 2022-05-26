@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/silenceper/log"
 	"runtime/debug"
+	"time"
 )
 
 const (
@@ -91,6 +92,7 @@ func onmessage(msg []byte, c *Client) {
 	}
 
 	if value, ok := routers.getHandlers(controllers); ok {
+		c.HeartbeatTime = uint64(time.Now().Unix())
 		if len(routers.middle) > 0 {
 			for _, v := range routers.middle {
 				if context.Next == true && v != nil {
