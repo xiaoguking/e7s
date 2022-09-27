@@ -5,6 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d53818a4-918d-4d7a-8988-167cee7bdedc" name="默认变更列表" comment="update meg">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/context.go" beforeDir="false" afterPath="$PROJECT_DIR$/context.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/service.go" beforeDir="false" afterPath="$PROJECT_DIR$/service.go" afterDir="false" />
     </list>
@@ -46,6 +47,7 @@
     <setting file="file://$PROJECT_DIR$/router.go" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/context.go" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/service.go" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$USER_HOME$/go/go1.16/src/builtin/builtin.go" root0="SKIP_INSPECTION" />
     <setting file="file://$PROJECT_DIR$/e7s.go" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/manager.go" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$USER_HOME$/go/go1.16/src/encoding/json/encode.go" root0="SKIP_INSPECTION" />

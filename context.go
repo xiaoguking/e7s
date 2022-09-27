@@ -7,9 +7,9 @@ import (
 )
 
 const (
-	ROUTE_EROOR             = -1
-	REQUEST_PARAMRTER_ERROR = -2
-	SERVER_ERROR            = -3
+	ROUTE_EROOR             = -1001
+	REQUEST_PARAMRTER_ERROR = -1002
+	SERVER_ERROR            = -1003
 )
 
 type E7sContext struct {
@@ -30,7 +30,7 @@ type E7sContext struct {
 }
 
 type response struct {
-	Cmd      string      `json:"cmd"`
+	Cmd      string      `json:"cmd,omitempty"`
 	Status   int         `json:"status"`
 	Response interface{} `json:"response,omitempty"`
 }
@@ -55,7 +55,7 @@ func (c *E7sContext) JSON(status int, obj interface{}) {
 	c.Client.Send <- data
 }
 
-func Respones(c *Client, status int, obj interface{}) {
+func Response(c *Client, status int, obj interface{}) {
 	res := response{}
 	res.Status = status
 	res.Response = obj
