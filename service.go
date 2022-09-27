@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"github.com/gorilla/websocket"
 	"github.com/silenceper/log"
-	"runtime/debug"
 	"time"
 )
 
@@ -13,7 +12,7 @@ const (
 	HeartbeatExpirationTime = 6 * 60
 )
 
-// 客户端实例
+// Client 客户端实例
 type Client struct {
 	Addr          string          // 客户端地址
 	Socket        *websocket.Conn // 用户连接
@@ -28,7 +27,8 @@ type Client struct {
 
 //消息体
 type Msg struct {
-	Cmd     string
+	Api     string
+	C       string
 	Request map[string]interface{}
 }
 
@@ -69,20 +69,21 @@ func (c *Client) reader() {
 func onmessage(msg []byte, c *Client) {
 	defer func() {
 		if err := recover(); err != nil {
-			log.Debug(string(debug.Stack()))
-			c.Send <- []byte("server error")
+			Respones(c, SERVER_ERROR, nil)
 			return
 		}
 	}()
 	var message Msg
 	err := json.Unmarshal(msg, &message)
 	if err != nil {
+		Respones(c, REQUEST_PARAMRTER_ERROR, nil)
 		return
 	}
-	if message.Request == nil || message.Cmd == "" {
+	if message.Api == "" || message.C == "" {
+		Respones(c, REQUEST_PARAMRTER_ERROR, nil)
 		return
 	}
-	controllers := message.Cmd
+	controllers := message.Api + "_" + message.C
 	context := &E7sContext{
 		Client:  c,
 		Manager: Managers,
@@ -104,13 +105,7 @@ func onmessage(msg []byte, c *Client) {
 			value(context)
 		}
 	} else {
-		log.Debug("websocket router not")
-		var res response
-		res.Cmd = controllers
-		res.Status = -1 //route
-		res.Response = nil
-		data, _ := json.Marshal(res)
-		c.Send <- data
+		Respones(c, ROUTE_EROOR, nil)
 		return
 	}
 }
