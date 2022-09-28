@@ -88,7 +88,8 @@ func onmessage(msg []byte, c *Client) {
 		Client:  c,
 		Manager: Managers,
 		Request: message.Request,
-		Cmd:     controllers,
+		Api:     message.Api,
+		C:       message.C,
 		Next:    true,
 	}
 

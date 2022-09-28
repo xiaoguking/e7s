@@ -20,7 +20,9 @@ type E7sContext struct {
 	//websocket request
 	Request map[string]interface{}
 	//router
-	Cmd string
+	Api string
+	//controller
+	C string
 	//请求继续
 	Next bool
 	//错误日志
@@ -45,7 +47,7 @@ func (c *E7sContext) GetRequestUid() (string, bool) {
 
 func (c *E7sContext) JSON(status int, obj interface{}) {
 	res := response{}
-	res.Cmd = c.Cmd
+	res.Cmd = c.Api + "_" + c.C
 	res.Status = status
 	res.Response = obj
 	data, err := json.Marshal(res)
