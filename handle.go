@@ -2,7 +2,6 @@ package e7s
 
 import (
 	"github.com/gorilla/websocket"
-	"github.com/silenceper/log"
 	"net/http"
 	"time"
 )
@@ -20,7 +19,7 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
-	log.Info("webSocket The client establishes a connection:" + ws.RemoteAddr().String())
+	//log.Info("webSocket The client establishes a connection:" + ws.RemoteAddr().String())
 
 	addr := ws.RemoteAddr().String()
 	currentTime := uint64(time.Now().Unix())
@@ -30,7 +29,7 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 	go c.writer()
 	c.reader()
 	defer func() {
-		log.Info("websocket The client is disconnected. Procedure" + ws.RemoteAddr().String())
+		//log.Info("websocket The client is disconnected. Procedure" + ws.RemoteAddr().String())
 		Managers.Unregister <- c
 		c.Socket.Close()
 	}()

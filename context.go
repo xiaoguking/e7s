@@ -12,7 +12,7 @@ const (
 	SERVER_ERROR            = -1003
 )
 
-type E7sContext struct {
+type Context struct {
 	//websocket client
 	Client *Client
 	//ClientManager
@@ -37,7 +37,7 @@ type response struct {
 	Response interface{} `json:"response,omitempty"`
 }
 
-func (c *E7sContext) GetRequestUid() (string, bool) {
+func (c *Context) GetRequestUid() (string, bool) {
 	uid := c.Client.UserId
 	if uid == "" {
 		return "", false
@@ -45,7 +45,7 @@ func (c *E7sContext) GetRequestUid() (string, bool) {
 	return uid, true
 }
 
-func (c *E7sContext) JSON(status int, obj interface{}) {
+func (c *Context) JSON(status int, obj interface{}) {
 	res := response{}
 	res.Cmd = c.Api + "_" + c.C
 	res.Status = status
@@ -68,7 +68,7 @@ func Response(c *Client, status int, obj interface{}) {
 	c.Send <- data
 }
 
-func (c *E7sContext) GetRequest(key string, defaults string) interface{} {
+func (c *Context) GetRequest(key string, defaults string) interface{} {
 	c.cLock.RLock()
 	defer c.cLock.RUnlock()
 	if val, ok := c.Request[key]; ok == false {

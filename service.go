@@ -3,7 +3,6 @@ package e7s
 import (
 	"encoding/json"
 	"github.com/gorilla/websocket"
-	"github.com/silenceper/log"
 	"time"
 )
 
@@ -61,7 +60,6 @@ func (c *Client) reader() {
 		if err != nil {
 			break
 		}
-		log.Info("Description The client message was received " + string(message))
 		onmessage(message, c)
 	}
 }
@@ -69,7 +67,7 @@ func (c *Client) reader() {
 func onmessage(msg []byte, c *Client) {
 	defer func() {
 		if err := recover(); err != nil {
-			Response(c, SERVER_ERROR, nil)
+			Response(c, SERVER_ERROR, err.(string))
 			return
 		}
 	}()
@@ -84,7 +82,7 @@ func onmessage(msg []byte, c *Client) {
 		return
 	}
 	controllers := message.Api + "_" + message.C
-	context := &E7sContext{
+	context := &Context{
 		Client:  c,
 		Manager: Managers,
 		Request: message.Request,

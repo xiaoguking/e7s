@@ -4,9 +4,9 @@ import (
 	"sync"
 )
 
-type DisposeFunc func(c *E7sContext)
+type DisposeFunc func(c *Context)
 
-type Middle func(c *E7sContext)
+type Middle func(c *Context)
 
 type DisposeRouters map[string]DisposeFunc
 
