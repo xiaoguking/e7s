@@ -7,56 +7,55 @@ import (
 )
 
 const (
-	// 用户连接超时时间
+	// HeartbeatExpirationTime 用户连接超时时间
 	HeartbeatExpirationTime = 6 * 60
 )
 
 // Client 客户端实例
-type Client struct {
-	Addr          string          // 客户端地址
-	Socket        *websocket.Conn // 用户连接
-	Clients       string          // 客户端标识
-	Send          chan []byte     // 待发送的数据
-	UserId        string          // 用户Id，用户登录以后才有
-	FirstTime     uint64          // 首次连接时间
-	HeartbeatTime uint64          // 用户上次心跳时间
-	LoginTime     uint64          // 登录时间 登录以后才有
-	Token         string          //登陆token
+type client struct {
+	addr          string          // 客户端地址
+	socket        *websocket.Conn // 用户连接
+	clients       string          // 客户端标识
+	send          chan []byte     // 待发送的数据
+	userId        int             // 用户Id，用户登录以后才有
+	firstTime     uint64          // 首次连接时间
+	heartbeatTime uint64          // 用户上次心跳时间
+	loginTime     uint64          // 登录时间 登录以后才有
+	token         string          //登陆token
 }
 
-//消息体
-type Msg struct {
+// Request 消息体
+type request struct {
 	Api     string
 	C       string
 	Request map[string]interface{}
 }
 
-// 初始化
-func NewClient(addr string, socket *websocket.Conn, firstTime uint64, clients string) (client *Client) {
+// NewClient 初始化
+func NewClient(addr string, socket *websocket.Conn, firstTime uint64, clients string) *client {
 
-	client = &Client{
-		Addr:          addr,
-		Socket:        socket,
-		Clients:       clients,
-		Send:          make(chan []byte, 100),
-		FirstTime:     firstTime,
-		HeartbeatTime: firstTime,
+	return &client{
+		addr:          addr,
+		socket:        socket,
+		clients:       clients,
+		send:          make(chan []byte, 100),
+		firstTime:     firstTime,
+		heartbeatTime: firstTime,
 	}
-	return
 }
 
 //写消息
-func (c *Client) writer() {
-	for message := range c.Send {
-		c.Socket.WriteMessage(websocket.TextMessage, message)
+func (c *client) writer() {
+	for message := range c.send {
+		c.socket.WriteMessage(websocket.TextMessage, message)
 	}
-	c.Socket.Close()
+	c.socket.Close()
 }
 
 //读取消息
-func (c *Client) reader() {
+func (c *client) reader() {
 	for {
-		_, message, err := c.Socket.ReadMessage()
+		_, message, err := c.socket.ReadMessage()
 		if err != nil {
 			break
 		}
@@ -64,27 +63,27 @@ func (c *Client) reader() {
 	}
 }
 
-func onmessage(msg []byte, c *Client) {
+func onmessage(msg []byte, c *client) {
 	defer func() {
 		if err := recover(); err != nil {
-			Response(c, SERVER_ERROR, err.(string))
+			sendResponse(c, SERVER_ERROR, err.(string))
 			return
 		}
 	}()
-	var message Msg
+	var message request
 	err := json.Unmarshal(msg, &message)
 	if err != nil {
-		Response(c, REQUEST_PARAMRTER_ERROR, nil)
+		sendResponse(c, REQUEST_PARAMRTER_ERROR, nil)
 		return
 	}
 	if message.Api == "" || message.C == "" {
-		Response(c, REQUEST_PARAMRTER_ERROR, nil)
+		sendResponse(c, REQUEST_PARAMRTER_ERROR, nil)
 		return
 	}
 	controllers := message.Api + "_" + message.C
 	context := &Context{
-		Client:  c,
-		Manager: Managers,
+		client:  c,
+		manager: managers,
 		Request: message.Request,
 		Api:     message.Api,
 		C:       message.C,
@@ -92,7 +91,7 @@ func onmessage(msg []byte, c *Client) {
 	}
 
 	if value, ok := routers.getHandlers(controllers); ok {
-		c.HeartbeatTime = uint64(time.Now().Unix())
+		c.heartbeatTime = uint64(time.Now().Unix())
 		if len(routers.middle) > 0 {
 			for _, v := range routers.middle {
 				if context.Next == true && v != nil {
@@ -104,7 +103,7 @@ func onmessage(msg []byte, c *Client) {
 			value(context)
 		}
 	} else {
-		Response(c, ROUTE_EROOR, nil)
+		sendResponse(c, ROUTE_EROOR, nil)
 		return
 	}
 }

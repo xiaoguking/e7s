@@ -1,60 +1,59 @@
 package e7s
 
 import (
-	"fmt"
 	"sync"
 )
 
-// 连接管理
-type ClientManager struct {
-	Clients     map[*Client]bool     // 全部的连接
-	ClientsLock sync.RWMutex         // 读写锁
-	Users       map[string][]*Client // 登录的用户
-	UserLock    sync.RWMutex         // 读写锁
-	Register    chan *Client         // 连接连接处理
-	Login       chan *Login          // 用户登录处理
-	LoginOut    chan string          // 用户退出处理
-	Unregister  chan *Client         // 断开连接处理程序
-	Broadcast   chan []byte          // 广播 向全部成员发送数据
+// ClientManager 连接管理
+type clientManager struct {
+	clients     map[*client]bool // 全部的连接
+	clientsLock sync.RWMutex     // 读写锁
+	users       map[int]*client  // 登录的用户
+	userLock    sync.RWMutex     // 读写锁
+	register    chan *client     // 连接连接处理
+	login       chan *Login      // 用户登录处理
+	loginOut    chan int         // 用户退出处理
+	unregister  chan *client     // 断开连接处理程序
+	uidBan      chan int         // 断开UID连接处理程序
+	broadcast   chan []byte      // 广播 向全部成员发送数据
 }
 
-func NewClientManager() (clientManager *ClientManager) {
-	clientManager = &ClientManager{
-		Clients:    make(map[*Client]bool),
-		Users:      make(map[string][]*Client),
-		Register:   make(chan *Client, 1000),
-		Login:      make(chan *Login, 1000),
-		LoginOut:   make(chan string, 1000),
-		Unregister: make(chan *Client, 1000),
-		Broadcast:  make(chan []byte, 1000),
+func NewClientManager() *clientManager {
+	return &clientManager{
+		clients:    make(map[*client]bool),
+		users:      make(map[int]*client),
+		register:   make(chan *client, 1000),
+		login:      make(chan *Login, 1000),
+		loginOut:   make(chan int, 1000),
+		unregister: make(chan *client, 1000),
+		uidBan:     make(chan int, 1000),
+		broadcast:  make(chan []byte, 1000),
 	}
-
-	return
 }
 
 type Login struct {
-	Uid string
-	C   *Client
+	uid int
+	c   *client
 }
 
 /**************************  manager  ***************************************/
 
-func (manager *ClientManager) InClient(client *Client) (ok bool) {
-	manager.ClientsLock.RLock()
-	defer manager.ClientsLock.RUnlock()
+func (manager *clientManager) inClient(client *client) (ok bool) {
+	manager.clientsLock.RLock()
+	defer manager.clientsLock.RUnlock()
 
 	// 连接存在，在添加
-	_, ok = manager.Clients[client]
+	_, ok = manager.clients[client]
 
 	return
 }
 
 // GetClients
-func (manager *ClientManager) GetClients() (clients map[*Client]bool) {
+func (manager *clientManager) getClients() (clients map[*client]bool) {
 
-	clients = make(map[*Client]bool)
+	clients = make(map[*client]bool)
 
-	manager.ClientsRange(func(client *Client, value bool) (result bool) {
+	manager.clientsRange(func(client *client, value bool) (result bool) {
 		clients[client] = value
 
 		return true
@@ -64,12 +63,12 @@ func (manager *ClientManager) GetClients() (clients map[*Client]bool) {
 }
 
 // 遍历
-func (manager *ClientManager) ClientsRange(f func(client *Client, value bool) (result bool)) {
+func (manager *clientManager) clientsRange(f func(client *client, value bool) (result bool)) {
 
-	manager.ClientsLock.RLock()
-	defer manager.ClientsLock.RUnlock()
+	manager.clientsLock.RLock()
+	defer manager.clientsLock.RUnlock()
 
-	for key, value := range manager.Clients {
+	for key, value := range manager.clients {
 		result := f(key, value)
 		if result == false {
 			return
@@ -80,201 +79,141 @@ func (manager *ClientManager) ClientsRange(f func(client *Client, value bool) (r
 }
 
 // GetClientsLen
-func (manager *ClientManager) GetClientsLen() (clientsLen int) {
+func (manager *clientManager) getClientsLen() (clientsLen int) {
 
-	clientsLen = len(manager.Clients)
+	clientsLen = len(manager.clients)
 
 	return
 }
 
-// 添加客户端
-func (manager *ClientManager) AddClients(client *Client) {
-	manager.ClientsLock.Lock()
-	defer manager.ClientsLock.Unlock()
+// AddClients 添加客户端
+func (manager *clientManager) addClients(client *client) {
+	manager.clientsLock.Lock()
+	defer manager.clientsLock.Unlock()
 
-	manager.Clients[client] = true
+	manager.clients[client] = true
 }
 
-// 删除客户端
-func (manager *ClientManager) DelClients(client *Client) {
-	manager.ClientsLock.Lock()
-	defer manager.ClientsLock.Unlock()
-	if _, ok := manager.Clients[client]; ok {
-		delete(manager.Clients, client)
+// DelClients 删除客户端
+func (manager *clientManager) delClients(client *client) {
+	manager.clientsLock.Lock()
+	defer manager.clientsLock.Unlock()
+	if _, ok := manager.clients[client]; ok {
+		delete(manager.clients, client)
 	}
 }
 
-// 获取用户的连接
-func (manager *ClientManager) GetUserClient(userId string) (client []*Client) {
+// GetUserClient 获取用户的连接
+func (manager *clientManager) getUserClient(userId int) (client *client) {
 
-	manager.UserLock.RLock()
-	defer manager.UserLock.RUnlock()
+	manager.userLock.RLock()
+	defer manager.userLock.RUnlock()
 
-	if value, ok := manager.Users[userId]; ok {
+	if value, ok := manager.users[userId]; ok {
 		client = value
-	}
-
-	return
-}
-
-// GetClientsLen
-func (manager *ClientManager) GetUsersLen() (userLen int) {
-	userLen = len(manager.Users)
-
-	return
-}
-
-// 添加用户
-func (manager *ClientManager) AddUsers(key string, client *Client) {
-	manager.UserLock.Lock()
-	defer manager.UserLock.Unlock()
-	if clients, ok := manager.Users[key]; ok {
-		manager.Users[key] = append(clients, client)
 	} else {
-		value := make([]*Client, 0)
-		manager.Users[key] = append(value, client)
-	}
-}
-
-// 删除用户
-func (manager *ClientManager) DelUsers(key string) {
-	manager.UserLock.Lock()
-	defer manager.UserLock.Unlock()
-
-	fmt.Println("DelUsers 4")
-	if _, ok := manager.Users[key]; ok {
-		delete(manager.Users, key)
-	}
-}
-
-// 获取用户的key
-func (manager *ClientManager) GetUserKeys() (userKeys []string) {
-
-	userKeys = make([]string, 0)
-	manager.UserLock.RLock()
-	defer manager.UserLock.RUnlock()
-	for key := range manager.Users {
-		userKeys = append(userKeys, key)
+		client = nil
 	}
 	return
 }
 
-// 获取用户的key
-func (manager *ClientManager) GetUserClients() (clients []*Client) {
+// GetUsersLen GetClientsLen
+func (manager *clientManager) getUsersLen() (userLen int) {
+	userLen = len(manager.users)
 
-	clients = make([]*Client, 0)
-	manager.UserLock.RLock()
-	defer manager.UserLock.RUnlock()
-	for _, v := range manager.Users {
-		for _, vs := range v {
-			clients = append(clients, vs)
-		}
+	return
+}
+
+// AddUsers 添加用户
+func (manager *clientManager) addUsers(key int, client *client) {
+	manager.userLock.Lock()
+	defer manager.userLock.Unlock()
+	if clients, ok := manager.users[key]; ok {
+		manager.loginOut <- clients.userId
+	} else {
+		manager.users[key] = client
+	}
+}
+
+// DelUsers 删除用户
+func (manager *clientManager) delUsers(key int) {
+	manager.userLock.Lock()
+	defer manager.userLock.Unlock()
+	if _, ok := manager.users[key]; ok {
+		delete(manager.users, key)
+	}
+}
+
+// GetUserClients 获取uid 连接
+func (manager *clientManager) getUserClients() (clients []*client) {
+
+	clients = make([]*client, 0)
+	manager.userLock.RLock()
+	defer manager.userLock.RUnlock()
+	for _, v := range manager.users {
+		clients = append(clients, v)
 	}
 	return
 }
 
-// 用户建立连接事件
-func (manager *ClientManager) EventRegister(client *Client) {
-	manager.AddClients(client)
+// EventRegister 用户建立连接事件
+func (manager *clientManager) eventRegister(client *client) {
+	manager.addClients(client)
 }
 
-// 用户断开连接
-func (manager *ClientManager) EventUnregister(client *Client) {
-	manager.DelClients(client)
-	if client.UserId != "" {
-		manager.UserLock.RLock()
-		defer manager.UserLock.RUnlock()
-		if userClient, ok := manager.Users[client.UserId]; ok {
-			userClientLen := len(userClient)
-			if userClientLen <= 0 {
-				delete(manager.Users, client.UserId)
-			}
-			if userClientLen == 1 && userClient[0] == client {
-				delete(manager.Users, client.UserId)
-			} else {
-				var newUserClinet []*Client
-				for i := range userClient {
-					if userClient[i] == client {
-						newUserClinet = append(userClient[:i], userClient[i+1:]...)
-						manager.Users[client.UserId] = newUserClinet
-					}
-				}
-			}
-		}
+// EventUnregister 用户断开连接
+func (manager *clientManager) eventUnregister(client *client) {
+	manager.delClients(client)
+	if client.userId != 0 {
+		manager.delUsers(client.userId)
 	}
 }
 
-//LoginOut
-func (manager *ClientManager) EventULoginOut(uid string) {
-	manager.UserLock.Lock()
-	defer manager.UserLock.Unlock()
-	if v, ok := manager.Users[uid]; ok {
-		for _, cs := range v {
-			cs.LoginTime = 0
-			cs.UserId = ""
-		}
-		delete(manager.Users, uid)
+// EventULoginOut LoginOut 退出
+func (manager *clientManager) eventULoginOut(uid int) {
+	manager.userLock.Lock()
+	defer manager.userLock.Unlock()
+	if v, ok := manager.users[uid]; ok {
+		v.loginTime = 0
+		v.userId = 0
+		delete(manager.users, uid)
 	}
 }
 
-//sendUid
-func (manager *ClientManager) SendToUid(uid string, msg []byte) {
-	client := manager.GetUserClient(uid)
-	for _, v := range client {
-		v.Send <- msg
-	}
+// EventUidBan  封号
+func (manager *clientManager) eventUidBan(uid int) {
+	manager.loginOut <- uid
+	UidClient := manager.getUserClient(uid)
+	manager.unregister <- UidClient
 }
 
-//uids
-func (manager *ClientManager) SendToUids(uid []string, msg []byte) {
-	for _, v := range uid {
-		client := manager.GetUserClient(v)
-		for _, vs := range client {
-			vs.Send <- msg
-		}
-	}
-}
-
-// 向全部成员(除了自己)发送数据
-func (manager *ClientManager) SendOther(message []byte, ignore *Client) {
-
-	clients := manager.GetUserClients()
-	for _, conn := range clients {
-		if conn != ignore {
-			conn.Send <- message
-		}
-	}
-}
-
-//发送广播
-func (manager *ClientManager) SendAll(message []byte) {
-	manager.Broadcast <- message
-}
-
-// 管道处理程序
-func (manager *ClientManager) Start() {
+// Start 管道处理程序
+func (manager *clientManager) Start() {
 	for {
 		select {
-		case conn := <-manager.Register:
+		case conn := <-manager.register:
 			// 建立连接事件
-			manager.EventRegister(conn)
-		case conn := <-manager.Unregister:
+			manager.eventRegister(conn)
+		case conn := <-manager.unregister:
 			// 断开连接事件
-			manager.EventUnregister(conn)
-		case user := <-manager.Login:
+			manager.eventUnregister(conn)
+		case user := <-manager.login:
 			//登陆事件
-			manager.AddUsers(user.Uid, user.C)
-		case uid := <-manager.LoginOut:
+			manager.addUsers(user.uid, user.c)
+		case uid := <-manager.loginOut:
 			//退出事件
-			manager.EventULoginOut(uid)
-		case message := <-manager.Broadcast:
+			manager.eventULoginOut(uid)
+		case uid := <-manager.uidBan:
+			//退出事件
+			manager.eventUidBan(uid)
+		case message := <-manager.broadcast:
 			// 广播事件
-			clients := manager.GetClients()
+			clients := manager.getClients()
 			for conn := range clients {
 				select {
-				case conn.Send <- message:
+				case conn.send <- message:
 				default:
-					close(conn.Send)
+					close(conn.send)
 				}
 			}
 		}

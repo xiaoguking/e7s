@@ -4,15 +4,15 @@ import (
 	"sync"
 )
 
-type DisposeFunc func(c *Context)
+type disposeFunc func(c *Context)
 
-type Middle func(c *Context)
+type middle func(c *Context)
 
-type DisposeRouters map[string]DisposeFunc
+type disposeRouters map[string]disposeFunc
 
 type Router struct {
-	router          map[string]DisposeFunc
-	middle          []Middle
+	router          disposeRouters
+	middle          []middle
 	handlersRWMutex sync.RWMutex
 }
 
@@ -20,13 +20,13 @@ var routers *Router
 
 func NewRouter() *Router {
 	routers = &Router{
-		router: make(DisposeRouters),
-		middle: make([]Middle, 1),
+		router: make(disposeRouters),
+		middle: make([]middle, 1),
 	}
 	return routers
 }
 
-func (r *Router) Register(key string, value DisposeFunc) *Router {
+func (r *Router) Register(key string, value disposeFunc) *Router {
 	r.handlersRWMutex.Lock()
 	defer r.handlersRWMutex.Unlock()
 	r.router[key] = value
@@ -34,7 +34,7 @@ func (r *Router) Register(key string, value DisposeFunc) *Router {
 	return r
 }
 
-func (r *Router) getHandlers(key string) (value DisposeFunc, ok bool) {
+func (r *Router) getHandlers(key string) (value disposeFunc, ok bool) {
 	if len(r.router) <= 0 {
 		return nil, false
 	}
@@ -44,7 +44,7 @@ func (r *Router) getHandlers(key string) (value DisposeFunc, ok bool) {
 	return
 }
 
-func (r *Router) Use(middle Middle) {
+func (r *Router) Use(middle middle) {
 	r.middle = append(r.middle, middle)
 	routers = r
 }
