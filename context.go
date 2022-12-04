@@ -89,7 +89,7 @@ func (c *Context) Login(uid int, time int) {
 }
 
 func (c *Context) Logout(uid int) {
-	c.manager.loginOut <- uid
+	c.manager.loginOut <- c.client
 }
 
 func (c *Context) BanUid(uid int) {
