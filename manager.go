@@ -129,7 +129,10 @@ func (manager *clientManager) addUsers(key int, client *client) {
 	manager.userLock.Lock()
 	defer manager.userLock.Unlock()
 	if clients, ok := manager.users[key]; ok {
-		manager.loginOut <- clients.userId
+		clients.loginTime = 0
+		clients.userId = 0
+		manager.delUsers(key)
+		manager.users[key] = client
 	} else {
 		manager.users[key] = client
 	}
@@ -176,7 +179,7 @@ func (manager *clientManager) eventULoginOut(uid int) {
 	if v, ok := manager.users[uid]; ok {
 		v.loginTime = 0
 		v.userId = 0
-		delete(manager.users, uid)
+		manager.delUsers(uid)
 	}
 }
 
@@ -184,7 +187,10 @@ func (manager *clientManager) eventULoginOut(uid int) {
 func (manager *clientManager) eventUidBan(uid int) {
 	manager.loginOut <- uid
 	UidClient := manager.getUserClient(uid)
-	manager.unregister <- UidClient
+	if UidClient != nil {
+		manager.unregister <- UidClient
+	}
+
 }
 
 // Start 管道处理程序
