@@ -12,7 +12,7 @@ type clientManager struct {
 	userLock    sync.RWMutex     // 读写锁
 	register    chan *client     // 连接连接处理
 	login       chan *Login      // 用户登录处理
-	loginOut    chan int         // 用户退出处理
+	loginOut    chan *client     // 用户退出处理
 	unregister  chan *client     // 断开连接处理程序
 	uidBan      chan int         // 断开UID连接处理程序
 	broadcast   chan []byte      // 广播 向全部成员发送数据
@@ -24,7 +24,7 @@ func NewClientManager() *clientManager {
 		users:      make(map[int]*client),
 		register:   make(chan *client, 1000),
 		login:      make(chan *Login, 1000),
-		loginOut:   make(chan int, 1000),
+		loginOut:   make(chan *client, 1000),
 		unregister: make(chan *client, 1000),
 		uidBan:     make(chan int, 1000),
 		broadcast:  make(chan []byte, 1000),
@@ -173,19 +173,17 @@ func (manager *clientManager) eventUnregister(client *client) {
 }
 
 // EventULoginOut LoginOut 退出
-func (manager *clientManager) eventULoginOut(uid int) {
-	manager.userLock.Lock()
-	defer manager.userLock.Unlock()
-	if v, ok := manager.users[uid]; ok {
-		v.loginTime = 0
-		v.userId = 0
-		manager.delUsers(uid)
-	}
+func (manager *clientManager) eventULoginOut(client *client) {
+	client.loginTime = 0
+	client.userId = 0
 }
 
 // EventUidBan  封号
 func (manager *clientManager) eventUidBan(uid int) {
-	manager.loginOut <- uid
+	uidClient := manager.getUserClient(uid)
+	if uidClient != nil {
+		manager.loginOut <- uidClient
+	}
 	UidClient := manager.getUserClient(uid)
 	if UidClient != nil {
 		manager.unregister <- UidClient
@@ -206,9 +204,9 @@ func (manager *clientManager) Start() {
 		case user := <-manager.login:
 			//登陆事件
 			manager.addUsers(user.uid, user.c)
-		case uid := <-manager.loginOut:
+		case uidClient := <-manager.loginOut:
 			//退出事件
-			manager.eventULoginOut(uid)
+			manager.eventULoginOut(uidClient)
 		case uid := <-manager.uidBan:
 			//退出事件
 			manager.eventUidBan(uid)
