@@ -48,12 +48,8 @@ func sendResponse(c *client, status int, obj interface{}) {
 	c.send <- data
 }
 
-func (c *Context) GetRequestUid() (int, bool) {
-	uid := c.client.userId
-	if uid == 0 {
-		return 0, false
-	}
-	return uid, true
+func (c *Context) GetRequestUid() int {
+	return c.client.userId
 }
 
 func (c *Context) JSON(status int, obj interface{}) {
@@ -68,14 +64,18 @@ func (c *Context) JSON(status int, obj interface{}) {
 	c.client.send <- data
 }
 
-func (c *Context) GetRequest(key string, defaults string) interface{} {
+func (c *Context) GetRequest(key string) interface{} {
 	c.cLock.RLock()
 	defer c.cLock.RUnlock()
 	if val, ok := c.Request[key]; ok == false {
-		return defaults
+		return nil
 	} else {
 		return val
 	}
+}
+
+func (c *Context) RequestKeyString(val interface{}) string {
+	return val.(string)
 }
 
 func (c *Context) Login(uid int, time int) {
