@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/silenceper/log"
 	"sync"
+	"time"
 )
 
 const (
@@ -88,7 +89,7 @@ func (c *Context) Login(uid int, time int) {
 	c.manager.login <- uidClient
 }
 
-func (c *Context) Logout(uid int) {
+func (c *Context) Logout() {
 	c.manager.loginOut <- c.client
 }
 
@@ -124,4 +125,22 @@ func (c *Context) sendOther(message []byte) {
 // SendAll 发送广播
 func (c *Context) SendAll(message []byte) {
 	c.manager.broadcast <- message
+}
+
+// GetOnlineLen 获取当前在线的人数
+func GetOnlineLen() (len int) {
+	len = managers.getUOnlineLen()
+	return
+}
+
+// HeartbeatCheck 心跳检测
+func HeartbeatCheck(heartbeatTime uint64) {
+	for true {
+		for k := range managers.clients {
+			if k != nil && uint64(time.Now().Unix())-k.heartbeatTime > heartbeatTime {
+				managers.loginOut <- k
+				managers.unregister <- k
+			}
+		}
+	}
 }

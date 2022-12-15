@@ -32,7 +32,7 @@ type request struct {
 }
 
 // NewClient 初始化
-func NewClient(addr string, socket *websocket.Conn, firstTime uint64, clients string) *client {
+func newClient(addr string, socket *websocket.Conn, firstTime uint64, clients string) *client {
 
 	return &client{
 		addr:          addr,

@@ -18,7 +18,7 @@ type clientManager struct {
 	broadcast   chan []byte      // 广播 向全部成员发送数据
 }
 
-func NewClientManager() *clientManager {
+func newClientManager() *clientManager {
 	return &clientManager{
 		clients:    make(map[*client]bool),
 		users:      make(map[int]*client),
@@ -41,10 +41,10 @@ type Login struct {
 func (manager *clientManager) inClient(client *client) (ok bool) {
 	manager.clientsLock.RLock()
 	defer manager.clientsLock.RUnlock()
-
-	// 连接存在，在添加
 	_, ok = manager.clients[client]
-
+	if !ok {
+		manager.clients[client] = true
+	}
 	return
 }
 
@@ -91,7 +91,11 @@ func (manager *clientManager) addClients(client *client) {
 	manager.clientsLock.Lock()
 	defer manager.clientsLock.Unlock()
 
-	manager.clients[client] = true
+	_, ok := manager.clients[client]
+	if !ok {
+		manager.clients[client] = true
+	}
+	return
 }
 
 // DelClients 删除客户端
@@ -118,7 +122,7 @@ func (manager *clientManager) getUserClient(userId int) (client *client) {
 }
 
 // GetUsersLen GetClientsLen
-func (manager *clientManager) getUsersLen() (userLen int) {
+func (manager *clientManager) getUOnlineLen() (userLen int) {
 	userLen = len(manager.users)
 
 	return
@@ -192,7 +196,7 @@ func (manager *clientManager) eventUidBan(uid int) {
 }
 
 // Start 管道处理程序
-func (manager *clientManager) Start() {
+func (manager *clientManager) start() {
 	for {
 		select {
 		case conn := <-manager.register:

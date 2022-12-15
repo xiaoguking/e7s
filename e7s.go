@@ -18,7 +18,7 @@ func NewE7s() *E7s {
 }
 
 func (e *E7s) Run(port string) error {
-	http.HandleFunc(e.Root, Handle)
+	http.HandleFunc(e.Root, handle)
 	if err := http.ListenAndServe(":"+port, nil); err != nil {
 		log.Error(err.Error())
 		return err

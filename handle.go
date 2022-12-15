@@ -8,11 +8,11 @@ import (
 
 var wu = &websocket.Upgrader{ReadBufferSize: 512, WriteBufferSize: 512, CheckOrigin: func(r *http.Request) bool { return true }}
 
-var managers = NewClientManager()
+var managers = newClientManager()
 
-func Handle(w http.ResponseWriter, r *http.Request) {
+func handle(w http.ResponseWriter, r *http.Request) {
 
-	go managers.Start()
+	go managers.start()
 
 	w.Header().Set("Server", " Server/1.0")
 	ws, err := wu.Upgrade(w, r, w.Header())
@@ -22,7 +22,7 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 	addr := ws.RemoteAddr().String()
 	currentTime := uint64(time.Now().Unix())
 	clients := uniqueId()
-	c := NewClient(addr, ws, currentTime, clients)
+	c := newClient(addr, ws, currentTime, clients)
 	managers.register <- c
 	go c.writer()
 	c.reader()
