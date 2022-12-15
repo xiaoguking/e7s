@@ -66,18 +66,18 @@ func (c *client) reader() {
 func onmessage(msg []byte, c *client) {
 	defer func() {
 		if err := recover(); err != nil {
-			sendResponse(c, SERVER_ERROR, err.(string))
+			sendResponse(c, ServerError, err.(string))
 			return
 		}
 	}()
 	var message request
 	err := json.Unmarshal(msg, &message)
 	if err != nil {
-		sendResponse(c, REQUEST_PARAMRTER_ERROR, nil)
+		sendResponse(c, RequestParamsError, nil)
 		return
 	}
 	if message.Api == "" || message.C == "" {
-		sendResponse(c, REQUEST_PARAMRTER_ERROR, nil)
+		sendResponse(c, RequestParamsError, nil)
 		return
 	}
 	controllers := message.Api + "_" + message.C
@@ -103,7 +103,7 @@ func onmessage(msg []byte, c *client) {
 			value(context)
 		}
 	} else {
-		sendResponse(c, ROUTE_EROOR, nil)
+		sendResponse(c, RouteError, nil)
 		return
 	}
 }

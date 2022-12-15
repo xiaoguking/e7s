@@ -8,9 +8,9 @@ import (
 )
 
 const (
-	ROUTE_EROOR             = -1001
-	REQUEST_PARAMRTER_ERROR = -1002
-	SERVER_ERROR            = -1003
+	RouteError         = -1001
+	RequestParamsError = -1002
+	ServerError        = -1003
 )
 
 type Context struct {
