@@ -178,6 +178,7 @@ func (manager *clientManager) eventUnregister(client *client) {
 
 // EventULoginOut LoginOut 退出
 func (manager *clientManager) eventULoginOut(client *client) {
+	manager.delUsers(client.userId)
 	client.loginTime = 0
 	client.userId = 0
 }
