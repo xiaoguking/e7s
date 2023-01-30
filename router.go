@@ -6,13 +6,11 @@ import (
 
 type disposeFunc func(c *Context)
 
-type middle func(c *Context)
-
 type disposeRouters map[string]disposeFunc
 
 type Router struct {
 	router          disposeRouters
-	middle          []middle
+	middle          []disposeFunc
 	handlersRWMutex sync.RWMutex
 }
 
@@ -21,7 +19,7 @@ var routers *Router
 func NewRouter() *Router {
 	routers = &Router{
 		router: make(disposeRouters),
-		middle: make([]middle, 1),
+		middle: make([]disposeFunc, 1),
 	}
 	return routers
 }
@@ -44,7 +42,7 @@ func (r *Router) getHandlers(key string) (value disposeFunc, ok bool) {
 	return
 }
 
-func (r *Router) Use(middle middle) {
+func (r *Router) Use(middle disposeFunc) {
 	r.middle = append(r.middle, middle)
 	routers = r
 }
