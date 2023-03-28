@@ -104,7 +104,7 @@ func (c *Context) SendToUid(uid int, msg []byte) {
 }
 
 // SendToUids 向多个uid发送消息
-func (c *Context) sendToUids(uid []int, msg []byte) {
+func (c *Context) SendToUids(uid []int, msg []byte) {
 	for _, v := range uid {
 		uidClient := c.manager.getUserClient(v)
 		uidClient.send <- msg
@@ -112,7 +112,7 @@ func (c *Context) sendToUids(uid []int, msg []byte) {
 }
 
 // SendOther 向全部成员(除了自己)发送数据
-func (c *Context) sendOther(message []byte) {
+func (c *Context) SendOther(message []byte) {
 
 	clients := c.manager.getUserClients()
 	for _, conn := range clients {
