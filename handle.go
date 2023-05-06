@@ -6,26 +6,25 @@ import (
 	"time"
 )
 
-var wu = &websocket.Upgrader{ReadBufferSize: 512, WriteBufferSize: 512, CheckOrigin: func(r *http.Request) bool { return true }}
+var ws = &websocket.Upgrader{ReadBufferSize: 512, WriteBufferSize: 512, CheckOrigin: func(r *http.Request) bool { return true }}
 
 var managers = newClientManager()
 
 func handle(w http.ResponseWriter, r *http.Request) {
 
-	go managers.start()
-
 	w.Header().Set("Server", " Server/1.0")
-	ws, err := wu.Upgrade(w, r, w.Header())
+	conn, err := ws.Upgrade(w, r, w.Header())
 	if err != nil {
 		return
 	}
-	addr := ws.RemoteAddr().String()
+	addr := conn.RemoteAddr().String()
 	currentTime := uint64(time.Now().Unix())
 	clients := uniqueId()
-	c := newClient(addr, ws, currentTime, clients)
+	c := newClient(addr, conn, currentTime, clients)
 	managers.register <- c
 	go c.writer()
-	c.reader()
+	go c.reader()
+
 	defer func() {
 		managers.unregister <- c
 		c.socket.Close()

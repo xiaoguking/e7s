@@ -19,6 +19,7 @@ func NewE7s() *E7s {
 }
 
 func (e *E7s) Run(port string) error {
+	go managers.start()
 	mux1 := mux.NewRouter()
 	mux1.HandleFunc(e.Root, handle)
 	//http.HandleFunc(e.Root, handle)
