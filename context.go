@@ -65,13 +65,13 @@ func (c *Context) JSON(status int, obj interface{}) {
 	c.client.send <- data
 }
 
-func (c *Context) GetRequest(key string) interface{} {
+func (c *Context) GetRequest(key string) string {
 	c.cLock.RLock()
 	defer c.cLock.RUnlock()
 	if val, ok := c.Request[key]; ok == false {
-		return nil
+		return ""
 	} else {
-		return val
+		return val.(string)
 	}
 }
 
