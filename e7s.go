@@ -22,12 +22,12 @@ func (e *E7s) Run(port string) error {
 	go managers.start()
 	mux1 := mux.NewRouter()
 	mux1.HandleFunc(e.Root, handle)
-	//http.HandleFunc(e.Root, handle)
+
 	if err := http.ListenAndServe(":"+port, mux1); err != nil {
 		log.Error(err.Error())
 		return err
-
 	}
+	//http.HandleFunc(e.Root, handle)
 	//if err := http.ListenAndServe(":"+port, nil); err != nil {
 	//	log.Error(err.Error())
 	//	return err

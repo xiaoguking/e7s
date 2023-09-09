@@ -2,6 +2,7 @@ package e7s
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/websocket"
 	"time"
 )
@@ -66,7 +67,7 @@ func (c *client) reader() {
 func onmessage(msg []byte, c *client) {
 	defer func() {
 		if err := recover(); err != nil {
-			sendResponse(c, ServerError, nil)
+			fmt.Println(err)
 			return
 		}
 	}()

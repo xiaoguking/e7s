@@ -1,6 +1,7 @@
 package e7s
 
 import (
+	"fmt"
 	"github.com/gorilla/websocket"
 	"net/http"
 	"time"
@@ -11,7 +12,12 @@ var ws = &websocket.Upgrader{ReadBufferSize: 512, WriteBufferSize: 512, CheckOri
 var managers = newClientManager()
 
 func handle(w http.ResponseWriter, r *http.Request) {
-
+	defer func() {
+		if err := recover(); err != nil {
+			fmt.Println(err)
+			return
+		}
+	}()
 	w.Header().Set("Server", " Server/1.0")
 	conn, err := ws.Upgrade(w, r, w.Header())
 	if err != nil {
@@ -27,6 +33,5 @@ func handle(w http.ResponseWriter, r *http.Request) {
 
 	defer func() {
 		managers.unregister <- c
-		c.socket.Close()
 	}()
 }
