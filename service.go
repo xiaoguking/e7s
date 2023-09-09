@@ -66,7 +66,7 @@ func (c *client) reader() {
 func onmessage(msg []byte, c *client) {
 	defer func() {
 		if err := recover(); err != nil {
-			sendResponse(c, ServerError, err.(string))
+			sendResponse(c, ServerError, nil)
 			return
 		}
 	}()

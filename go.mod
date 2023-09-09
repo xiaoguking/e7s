@@ -8,5 +8,3 @@ require (
 	github.com/gorilla/websocket v1.4.2
 	github.com/silenceper/log v0.0.0-20171204144354-e5ac7fa8a76a
 )
-
-require github.com/albrow/forms v0.3.3 // indirect
