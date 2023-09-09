@@ -3,6 +3,7 @@ package e7s
 import (
 	"encoding/json"
 	"github.com/silenceper/log"
+	"reflect"
 	"sync"
 	"time"
 )
@@ -65,18 +66,40 @@ func (c *Context) JSON(status int, obj interface{}) {
 	c.client.send <- data
 }
 
-func (c *Context) GetRequest(key string) string {
+func (c *Context) GetRequest(key string) interface{} {
+	c.cLock.RLock()
+	defer c.cLock.RUnlock()
+	if val, ok := c.Request[key]; ok == false {
+		return nil
+	} else {
+		return val
+	}
+}
+
+func (c *Context) GetRequestString(key string) string {
 	c.cLock.RLock()
 	defer c.cLock.RUnlock()
 	if val, ok := c.Request[key]; ok == false {
 		return ""
 	} else {
-		return val.(string)
+		if reflect.TypeOf(val).Kind() == reflect.String {
+			return val.(string)
+		}
 	}
+	return ""
 }
 
-func (c *Context) RequestKeyString(val interface{}) string {
-	return val.(string)
+func (c *Context) GetRequestInt(key string) int {
+	c.cLock.RLock()
+	defer c.cLock.RUnlock()
+	if val, ok := c.Request[key]; ok == false {
+		return 0
+	} else {
+		if reflect.TypeOf(val).Kind() == reflect.Int {
+			return val.(int)
+		}
+	}
+	return 0
 }
 
 func (c *Context) Login(uid int, time int) {
