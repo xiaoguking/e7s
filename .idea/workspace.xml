@@ -6,6 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="d53818a4-918d-4d7a-8988-167cee7bdedc" name="默认变更列表" comment="添加一个获取参数的方法">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/e7s.go" beforeDir="false" afterPath="$PROJECT_DIR$/e7s.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -43,7 +44,9 @@
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$PROJECT_DIR$/context.go" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/service.go" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$USER_HOME$/sdk/go1.18/src/encoding/json/decode.go" root0="SKIP_INSPECTION" />
     <setting file="file://$USER_HOME$/go/pkg/mod/github.com/gorilla/mux@v1.8.0/mux.go" root0="SKIP_INSPECTION" />
+    <setting file="file://$USER_HOME$/sdk/go1.18/src/sync/map.go" root0="SKIP_INSPECTION" />
     <setting file="file://$USER_HOME$/sdk/go1.18/src/reflect/type.go" root0="SKIP_INSPECTION" />
     <setting file="file://$PROJECT_DIR$/go.mod" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/e7s.go" root0="FORCE_HIGHLIGHTING" />
