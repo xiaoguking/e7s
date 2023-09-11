@@ -25,13 +25,6 @@ type client struct {
 	token         string          //登陆token
 }
 
-// Request 消息体
-type request struct {
-	Api     string
-	C       string
-	Request map[string]interface{}
-}
-
 // NewClient 初始化
 func newClient(addr string, socket *websocket.Conn, firstTime uint64, clients string) *client {
 
@@ -71,23 +64,29 @@ func onmessage(msg []byte, c *client) {
 			return
 		}
 	}()
-	var message request
+	message := make(map[string]interface{})
 	err := json.Unmarshal(msg, &message)
 	if err != nil {
 		sendResponse(c, RequestParamsError, nil)
 		return
 	}
-	if message.Api == "" || message.C == "" {
+	if _, ok := message["api"]; !ok {
 		sendResponse(c, RequestParamsError, nil)
 		return
 	}
-	controllers := message.Api + "_" + message.C
+	if _, ok := message["c"]; !ok {
+		sendResponse(c, RequestParamsError, nil)
+		return
+	}
+	api := StructToURLValues(message, "api")
+	cc := StructToURLValues(message, "c")
+	controllers := api + "_" + cc
 	context := &Context{
 		client:  c,
 		manager: managers,
-		Request: message.Request,
-		Api:     message.Api,
-		C:       message.C,
+		Request: message,
+		Api:     api,
+		C:       cc,
 		Next:    true,
 	}
 
