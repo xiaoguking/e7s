@@ -79,14 +79,7 @@ func (c *Context) GetRequest(key string) interface{} {
 func (c *Context) GetRequestString(key string) string {
 	c.cLock.RLock()
 	defer c.cLock.RUnlock()
-	if val, ok := c.Request[key]; ok == false {
-		return ""
-	} else {
-		if reflect.TypeOf(val).Kind() == reflect.String {
-			return val.(string)
-		}
-	}
-	return ""
+	return StructToURLValues(c.Request, key)
 }
 
 func (c *Context) GetRequestInt(key string) int {
