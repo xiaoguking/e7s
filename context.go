@@ -3,7 +3,6 @@ package e7s
 import (
 	"encoding/json"
 	"github.com/silenceper/log"
-	"reflect"
 	"sync"
 	"time"
 )
@@ -76,25 +75,14 @@ func (c *Context) GetRequest(key string) interface{} {
 	}
 }
 
-func (c *Context) GetRequestString(key string) string {
+// GetQuery 查询参数
+func (c *Context) GetQuery(key string) string {
 	c.cLock.RLock()
 	defer c.cLock.RUnlock()
 	return StructToURLValues(c.Request, key)
 }
 
-func (c *Context) GetRequestInt(key string) int {
-	c.cLock.RLock()
-	defer c.cLock.RUnlock()
-	if val, ok := c.Request[key]; ok == false {
-		return 0
-	} else {
-		if reflect.TypeOf(val).Kind() == reflect.Int {
-			return val.(int)
-		}
-	}
-	return 0
-}
-
+// Login 登录事件
 func (c *Context) Login(uid int, time int) {
 	c.client.userId = uid
 	c.client.loginTime = uint64(time)
