@@ -4,9 +4,8 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d53818a4-918d-4d7a-8988-167cee7bdedc" name="默认变更列表" comment="添加一个获取参数的方法">
+    <list default="true" id="d53818a4-918d-4d7a-8988-167cee7bdedc" name="默认变更列表" comment="设置">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/e7s.go" beforeDir="false" afterPath="$PROJECT_DIR$/e7s.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -218,7 +217,8 @@
     <MESSAGE value="update meg" />
     <MESSAGE value="update client logout" />
     <MESSAGE value="添加一个获取参数的方法" />
-    <option name="LAST_COMMIT_MESSAGE" value="添加一个获取参数的方法" />
+    <MESSAGE value="设置" />
+    <option name="LAST_COMMIT_MESSAGE" value="设置" />
   </component>
   <component name="VgoProject">
     <integration-enabled>true</integration-enabled>

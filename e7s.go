@@ -1,6 +1,7 @@
 package e7s
 
 import (
+	"fmt"
 	"github.com/fvbock/endless"
 	"github.com/gorilla/mux"
 )
@@ -25,7 +26,13 @@ func (e *E7s) Run(port string) error {
 	s := endless.NewServer(":"+port, mux1)
 	err := s.ListenAndServe()
 	if err != nil {
+		fmt.Println(err.Error())
 		return err
 	}
+	//http.HandleFunc(e.Root, handle)
+	//if err := http.ListenAndServe(":"+port, nil); err != nil {
+	//	log.Error(err.Error())
+	//	return err
+	//}
 	return nil
 }
