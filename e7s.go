@@ -1,38 +1,33 @@
 package e7s
 
 import (
-	"fmt"
-	"github.com/fvbock/endless"
-	"github.com/gorilla/mux"
+	"github.com/silenceper/log"
+	"net/http"
 )
 
 type E7s struct {
-	Router *Router
-	Root   string
+	Router        *Router
+	Root          string
+	HeartbeatTime uint64
 }
 
-func NewE7s() *E7s {
+func NewE7s(root string, heartbeatTime uint64) *E7s {
 	return &E7s{
-		Router: NewRouter(),
-		Root:   "/",
+		Router:        NewRouter(),
+		Root:          root,
+		HeartbeatTime: heartbeatTime,
 	}
 }
 
 func (e *E7s) Run(port string) error {
 	go managers.start()
-	mux1 := mux.NewRouter()
-	mux1.HandleFunc(e.Root, handle)
-
-	s := endless.NewServer(":"+port, mux1)
-	err := s.ListenAndServe()
-	if err != nil {
-		fmt.Println(err.Error())
+	if e.HeartbeatTime > 0 {
+		go HeartbeatCheck(e.HeartbeatTime)
+	}
+	http.HandleFunc(e.Root, handle)
+	if err := http.ListenAndServe(":"+port, nil); err != nil {
+		log.Error(err.Error())
 		return err
 	}
-	//http.HandleFunc(e.Root, handle)
-	//if err := http.ListenAndServe(":"+port, nil); err != nil {
-	//	log.Error(err.Error())
-	//	return err
-	//}
 	return nil
 }

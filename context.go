@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"github.com/silenceper/log"
 	"sync"
-	"time"
 )
 
 const (
@@ -90,27 +89,27 @@ func (c *Context) Login(uid int, time int) {
 		uid: uid,
 		c:   c.client,
 	}
-	c.manager.login <- uidClient
+	managers.login <- uidClient
 }
 
 func (c *Context) Logout() {
-	c.manager.loginOut <- c.client
+	managers.loginOut <- c.client
 }
 
 func (c *Context) BanUid(uid int) {
-	c.manager.uidBan <- uid
+	managers.uidBan <- uid
 }
 
 // SendToUid 单独向uid发送消息
 func (c *Context) SendToUid(uid int, msg []byte) {
-	uidClient := c.manager.getUserClient(uid)
+	uidClient := managers.getUserClient(uid)
 	uidClient.send <- msg
 }
 
 // SendToUids 向多个uid发送消息
 func (c *Context) SendToUids(uid []int, msg []byte) {
 	for _, v := range uid {
-		uidClient := c.manager.getUserClient(v)
+		uidClient := managers.getUserClient(v)
 		uidClient.send <- msg
 	}
 }
@@ -118,7 +117,7 @@ func (c *Context) SendToUids(uid []int, msg []byte) {
 // SendOther 向全部成员(除了自己)发送数据
 func (c *Context) SendOther(message []byte) {
 
-	clients := c.manager.getUserClients()
+	clients := managers.getUserClients()
 	for _, conn := range clients {
 		if conn != c.client {
 			conn.send <- message
@@ -128,23 +127,11 @@ func (c *Context) SendOther(message []byte) {
 
 // SendAll 发送广播
 func (c *Context) SendAll(message []byte) {
-	c.manager.broadcast <- message
+	managers.broadcast <- message
 }
 
 // GetOnlineLen 获取当前在线的人数
 func GetOnlineLen() (len int) {
 	len = managers.getUOnlineLen()
 	return
-}
-
-// HeartbeatCheck 心跳检测
-func HeartbeatCheck(heartbeatTime uint64) {
-	for true {
-		for k := range managers.clients {
-			if k != nil && uint64(time.Now().Unix())-k.heartbeatTime > heartbeatTime {
-				managers.loginOut <- k
-				managers.unregister <- k
-			}
-		}
-	}
 }

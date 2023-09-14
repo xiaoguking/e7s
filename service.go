@@ -83,7 +83,6 @@ func onmessage(msg []byte, c *client) {
 	controllers := api + "_" + cc
 	context := &Context{
 		client:  c,
-		manager: managers,
 		Request: message,
 		Api:     api,
 		C:       cc,
