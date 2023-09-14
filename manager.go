@@ -2,7 +2,6 @@ package e7s
 
 import (
 	"sync"
-	"time"
 )
 
 // ClientManager 连接管理
@@ -195,18 +194,6 @@ func (manager *clientManager) eventUidBan(uid int) {
 		manager.unregister <- UidClient
 	}
 
-}
-
-// HeartbeatCheck 心跳检测
-func HeartbeatCheck(heartbeatTime uint64) {
-	for true {
-		for k := range managers.clients {
-			if k != nil && uint64(time.Now().Unix())-k.heartbeatTime > heartbeatTime {
-				managers.loginOut <- k
-				managers.unregister <- k
-			}
-		}
-	}
 }
 
 // Start 管道处理程序

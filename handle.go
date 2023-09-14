@@ -28,8 +28,8 @@ func handle(w http.ResponseWriter, r *http.Request) {
 	clients := uniqueId()
 	c := newClient(addr, conn, currentTime, clients)
 	managers.register <- c
-	go c.writer()
 	go c.reader()
+	c.writer()
 
 	defer func() {
 		managers.unregister <- c

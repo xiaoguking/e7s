@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/silenceper/log"
 	"sync"
+	"time"
 )
 
 const (
@@ -132,4 +133,15 @@ func (c *Context) SendAll(message []byte) {
 func GetOnlineLen() (len int) {
 	len = managers.getUOnlineLen()
 	return
+}
+
+// HeartbeatCheck 心跳检测
+func HeartbeatCheck(heartbeatTime uint64) {
+	for k := range managers.clients {
+		if k != nil && uint64(time.Now().Unix())-k.heartbeatTime > heartbeatTime {
+			managers.loginOut <- k
+			managers.unregister <- k
+			k.socket.Close()
+		}
+	}
 }

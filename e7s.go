@@ -21,9 +21,6 @@ func NewE7s(root string, heartbeatTime uint64) *E7s {
 
 func (e *E7s) Run(port string) error {
 	go managers.start()
-	if e.HeartbeatTime > 0 {
-		go HeartbeatCheck(e.HeartbeatTime)
-	}
 	http.HandleFunc(e.Root, handle)
 	if err := http.ListenAndServe(":"+port, nil); err != nil {
 		log.Error(err.Error())
