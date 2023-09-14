@@ -47,7 +47,7 @@ func sendResponse(c *client, status int, obj interface{}) {
 	c.send <- data
 }
 
-func (c *Context) GetRequestUid() int {
+func (c *Context) GetRequestUid() string {
 	return c.client.userId
 }
 
@@ -81,7 +81,7 @@ func (c *Context) GetQuery(key string) string {
 }
 
 // Login 登录事件
-func (c *Context) Login(uid int, time int) {
+func (c *Context) Login(uid string, time int) {
 	c.client.userId = uid
 	c.client.loginTime = uint64(time)
 	uidClient := &Login{
@@ -100,7 +100,7 @@ func (c *Context) BanUid(uid int) {
 }
 
 // SendToUid 单独向uid发送消息
-func (c *Context) SendToUid(uid int, msg []byte) {
+func (c *Context) SendToUid(uid string, msg []byte) {
 	uidClient := managers.getUserClient(uid)
 	if uidClient != nil {
 		uidClient.send <- msg
@@ -108,7 +108,7 @@ func (c *Context) SendToUid(uid int, msg []byte) {
 }
 
 // SendToUids 向多个uid发送消息
-func (c *Context) SendToUids(uid []int, msg []byte) {
+func (c *Context) SendToUids(uid []string, msg []byte) {
 	for _, v := range uid {
 		uidClient := managers.getUserClient(v)
 		if uidClient != nil {

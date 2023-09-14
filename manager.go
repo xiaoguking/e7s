@@ -8,7 +8,7 @@ import (
 type clientManager struct {
 	clients     map[*client]bool       // 全部的连接
 	clientsLock sync.RWMutex           // 读写锁
-	users       map[int]*client        // 登录的用户
+	users       map[string]*client     // 登录的用户
 	userLock    sync.RWMutex           // 读写锁
 	register    chan *client           // 连接连接处理
 	login       chan *Login            // 用户登录处理
@@ -21,7 +21,7 @@ type clientManager struct {
 func newClientManager() *clientManager {
 	return &clientManager{
 		clients:    make(map[*client]bool),
-		users:      make(map[int]*client),
+		users:      make(map[string]*client),
 		register:   make(chan *client, 1000),
 		login:      make(chan *Login, 1000),
 		loginOut:   make(chan *client, 1000),
@@ -32,7 +32,7 @@ func newClientManager() *clientManager {
 }
 
 type Login struct {
-	uid int
+	uid string
 	c   *client
 }
 
@@ -113,12 +113,12 @@ func (manager *clientManager) delClients(client *client) {
 }
 
 // GetUserClient 获取用户的连接
-func (manager *clientManager) getUserClient(userId int) (client *client) {
+func (manager *clientManager) getUserClient(uid string) (client *client) {
 
 	manager.userLock.RLock()
 	defer manager.userLock.RUnlock()
 
-	if value, ok := manager.users[userId]; ok {
+	if value, ok := manager.users[uid]; ok {
 		client = value
 	} else {
 		client = nil
@@ -134,25 +134,25 @@ func (manager *clientManager) getUOnlineLen() (userLen int) {
 }
 
 // AddUsers 添加用户
-func (manager *clientManager) addUsers(key int, client *client) {
+func (manager *clientManager) addUsers(uid string, client *client) {
 	manager.userLock.Lock()
 	defer manager.userLock.Unlock()
-	if clients, ok := manager.users[key]; ok {
+	if clients, ok := manager.users[uid]; ok {
 		clients.loginTime = 0
 		clients.userId = 0
-		manager.delUsers(key)
-		manager.users[key] = client
+		manager.delUsers(uid)
+		manager.users[uid] = client
 	} else {
-		manager.users[key] = client
+		manager.users[uid] = client
 	}
 }
 
 // DelUsers 删除用户
-func (manager *clientManager) delUsers(key int) {
+func (manager *clientManager) delUsers(uid string) {
 	manager.userLock.Lock()
 	defer manager.userLock.Unlock()
-	if _, ok := manager.users[key]; ok {
-		delete(manager.users, key)
+	if _, ok := manager.users[uid]; ok {
+		delete(manager.users, uid)
 	}
 }
 

@@ -18,7 +18,7 @@ type client struct {
 	socket        *websocket.Conn // 用户连接
 	clients       string          // 客户端标识
 	send          chan []byte     // 待发送的数据
-	userId        int             // 用户Id，用户登录以后才有
+	userId        string          // 用户Id，用户登录以后才有
 	firstTime     uint64          // 首次连接时间
 	heartbeatTime uint64          // 用户上次心跳时间
 	loginTime     uint64          // 登录时间 登录以后才有
