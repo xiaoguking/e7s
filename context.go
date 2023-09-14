@@ -15,8 +15,6 @@ const (
 type Context struct {
 	//websocket client
 	client *client
-	//ClientManager
-	manager *clientManager
 	//websocket request
 	Request map[string]interface{}
 	//router
