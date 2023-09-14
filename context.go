@@ -102,31 +102,35 @@ func (c *Context) BanUid(uid int) {
 // SendToUid 单独向uid发送消息
 func (c *Context) SendToUid(uid int, msg []byte) {
 	uidClient := managers.getUserClient(uid)
-	uidClient.send <- msg
+	if uidClient != nil {
+		uidClient.send <- msg
+	}
 }
 
 // SendToUids 向多个uid发送消息
 func (c *Context) SendToUids(uid []int, msg []byte) {
 	for _, v := range uid {
 		uidClient := managers.getUserClient(v)
-		uidClient.send <- msg
-	}
-}
-
-// SendOther 向全部成员(除了自己)发送数据
-func (c *Context) SendOther(message []byte) {
-
-	clients := managers.getUserClients()
-	for _, conn := range clients {
-		if conn != c.client {
-			conn.send <- message
+		if uidClient != nil {
+			uidClient.send <- msg
 		}
 	}
 }
 
+// SendOther 向其他全部成员发送数据
+func (c *Context) SendOther(message []byte) {
+	messages := &broadcastMessage{}
+	messages.From = c.client.addr
+	messages.Message = message
+	managers.broadcast <- messages
+}
+
 // SendAll 发送广播
 func (c *Context) SendAll(message []byte) {
-	managers.broadcast <- message
+	messages := &broadcastMessage{}
+	messages.From = ""
+	messages.Message = message
+	managers.broadcast <- messages
 }
 
 // GetOnlineLen 获取当前在线的人数

@@ -6,16 +6,16 @@ import (
 
 // ClientManager 连接管理
 type clientManager struct {
-	clients     map[*client]bool // 全部的连接
-	clientsLock sync.RWMutex     // 读写锁
-	users       map[int]*client  // 登录的用户
-	userLock    sync.RWMutex     // 读写锁
-	register    chan *client     // 连接连接处理
-	login       chan *Login      // 用户登录处理
-	loginOut    chan *client     // 用户退出处理
-	unregister  chan *client     // 断开连接处理程序
-	uidBan      chan int         // 断开UID连接处理程序
-	broadcast   chan []byte      // 广播 向全部成员发送数据
+	clients     map[*client]bool       // 全部的连接
+	clientsLock sync.RWMutex           // 读写锁
+	users       map[int]*client        // 登录的用户
+	userLock    sync.RWMutex           // 读写锁
+	register    chan *client           // 连接连接处理
+	login       chan *Login            // 用户登录处理
+	loginOut    chan *client           // 用户退出处理
+	unregister  chan *client           // 断开连接处理程序
+	uidBan      chan int               // 断开UID连接处理程序
+	broadcast   chan *broadcastMessage // 广播 向全部成员发送数据
 }
 
 func newClientManager() *clientManager {
@@ -27,13 +27,18 @@ func newClientManager() *clientManager {
 		loginOut:   make(chan *client, 1000),
 		unregister: make(chan *client, 1000),
 		uidBan:     make(chan int, 1000),
-		broadcast:  make(chan []byte, 1000),
+		broadcast:  make(chan *broadcastMessage, 1000),
 	}
 }
 
 type Login struct {
 	uid int
 	c   *client
+}
+
+type broadcastMessage struct {
+	From    string
+	Message []byte
 }
 
 /**************************  manager  ***************************************/
@@ -192,6 +197,7 @@ func (manager *clientManager) eventUidBan(uid int) {
 	UidClient := manager.getUserClient(uid)
 	if UidClient != nil {
 		manager.unregister <- UidClient
+		UidClient.socket.Close()
 	}
 
 }
@@ -219,8 +225,11 @@ func (manager *clientManager) start() {
 			// 广播事件
 			clients := manager.getClients()
 			for conn := range clients {
+				if message.From != "" && message.From == conn.addr {
+					continue
+				}
 				select {
-				case conn.send <- message:
+				case conn.send <- message.Message:
 				default:
 					close(conn.send)
 				}
