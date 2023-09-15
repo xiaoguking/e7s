@@ -31,15 +31,15 @@ type Context struct {
 }
 
 type response struct {
-	Api      string      `json:"api,omitempty"`
-	Status   int         `json:"status"`
-	Response interface{} `json:"response,omitempty"`
+	Api    string      `json:"api,omitempty"`
+	Status int         `json:"status"`
+	Data   interface{} `json:"data,omitempty"`
 }
 
 func sendResponse(c *client, status int, obj interface{}) {
 	res := response{}
 	res.Status = status
-	res.Response = obj
+	res.Data = obj
 	data, err := json.Marshal(res)
 	if err != nil {
 		log.Error(err.Error())
@@ -47,15 +47,26 @@ func sendResponse(c *client, status int, obj interface{}) {
 	c.send <- data
 }
 
-func (c *Context) GetRequestUid() string {
+// GetUid 获取uid
+func (c *Context) GetUid() string {
 	return c.client.userId
 }
 
+// IsLogin 是否登录
+func (c *Context) IsLogin() bool {
+	if c.client.userId == "" {
+		return false
+	} else {
+		return true
+	}
+}
+
+//JSON 返回JSON 数据
 func (c *Context) JSON(status int, obj interface{}) {
 	res := response{}
 	res.Api = c.Api + "_" + c.C
 	res.Status = status
-	res.Response = obj
+	res.Data = obj
 	data, err := json.Marshal(res)
 	if err != nil {
 		log.Error(err.Error())
@@ -73,7 +84,7 @@ func (c *Context) GetRequest(key string) interface{} {
 	}
 }
 
-// GetQuery 查询参数
+// GetQuery 查询请求参数
 func (c *Context) GetQuery(key string) string {
 	c.cLock.RLock()
 	defer c.cLock.RUnlock()
@@ -91,11 +102,13 @@ func (c *Context) Login(uid string, time int) {
 	managers.login <- uidClient
 }
 
+// Logout 退出事件
 func (c *Context) Logout() {
 	managers.loginOut <- c.client
 }
 
-func (c *Context) BanUid(uid int) {
+// BanUid 封号
+func (c *Context) BanUid(uid string) {
 	managers.uidBan <- uid
 }
 

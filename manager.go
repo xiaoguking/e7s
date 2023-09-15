@@ -14,7 +14,7 @@ type clientManager struct {
 	login       chan *Login            // 用户登录处理
 	loginOut    chan *client           // 用户退出处理
 	unregister  chan *client           // 断开连接处理程序
-	uidBan      chan int               // 断开UID连接处理程序
+	uidBan      chan string            // 断开UID连接处理程序
 	broadcast   chan *broadcastMessage // 广播 向全部成员发送数据
 }
 
@@ -26,7 +26,7 @@ func newClientManager() *clientManager {
 		login:      make(chan *Login, 1000),
 		loginOut:   make(chan *client, 1000),
 		unregister: make(chan *client, 1000),
-		uidBan:     make(chan int, 1000),
+		uidBan:     make(chan string, 1000),
 		broadcast:  make(chan *broadcastMessage, 1000),
 	}
 }
@@ -134,16 +134,16 @@ func (manager *clientManager) getUOnlineLen() (userLen int) {
 }
 
 // AddUsers 添加用户
-func (manager *clientManager) addUsers(uid string, client *client) {
+func (manager *clientManager) addUsers(userLogin *Login) {
 	manager.userLock.Lock()
 	defer manager.userLock.Unlock()
-	if clients, ok := manager.users[uid]; ok {
+	if clients, ok := manager.users[userLogin.uid]; ok {
 		clients.loginTime = 0
-		clients.userId = 0
-		manager.delUsers(uid)
-		manager.users[uid] = client
+		clients.userId = ""
+		manager.delUsers(userLogin.uid)
+		manager.users[userLogin.uid] = userLogin.c
 	} else {
-		manager.users[uid] = client
+		manager.users[userLogin.uid] = userLogin.c
 	}
 }
 
@@ -176,7 +176,7 @@ func (manager *clientManager) eventRegister(client *client) {
 // EventUnregister 用户断开连接
 func (manager *clientManager) eventUnregister(client *client) {
 	manager.delClients(client)
-	if client.userId != 0 {
+	if client.userId != "" {
 		manager.delUsers(client.userId)
 	}
 }
@@ -185,11 +185,11 @@ func (manager *clientManager) eventUnregister(client *client) {
 func (manager *clientManager) eventULoginOut(client *client) {
 	manager.delUsers(client.userId)
 	client.loginTime = 0
-	client.userId = 0
+	client.userId = ""
 }
 
 // EventUidBan  封号
-func (manager *clientManager) eventUidBan(uid int) {
+func (manager *clientManager) eventUidBan(uid string) {
 	uidClient := manager.getUserClient(uid)
 	if uidClient != nil {
 		manager.loginOut <- uidClient
@@ -212,9 +212,9 @@ func (manager *clientManager) start() {
 		case conn := <-manager.unregister:
 			// 断开连接事件
 			manager.eventUnregister(conn)
-		case user := <-manager.login:
+		case userLogin := <-manager.login:
 			//登陆事件
-			manager.addUsers(user.uid, user.c)
+			manager.addUsers(userLogin)
 		case uidClient := <-manager.loginOut:
 			//退出事件
 			manager.eventULoginOut(uidClient)

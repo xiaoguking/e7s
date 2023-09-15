@@ -6,16 +6,14 @@ import (
 )
 
 type E7s struct {
-	Router        *Router
-	Root          string
-	HeartbeatTime uint64
+	Router *Router
+	Root   string
 }
 
-func NewE7s(root string, heartbeatTime uint64) *E7s {
+func NewE7s(root string) *E7s {
 	return &E7s{
-		Router:        NewRouter(),
-		Root:          root,
-		HeartbeatTime: heartbeatTime,
+		Router: NewRouter(),
+		Root:   root,
 	}
 }
 
