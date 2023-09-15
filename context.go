@@ -5,6 +5,7 @@ import (
 	"github.com/silenceper/log"
 	"sync"
 	"time"
+	//"fmt"
 )
 
 const (
@@ -114,6 +115,8 @@ func (c *Context) BanUid(uid string) {
 
 // SendToUid 单独向uid发送消息
 func (c *Context) SendToUid(uid string, msg []byte) {
+	managers.clientsLock.RLock()
+	defer managers.clientsLock.RUnlock()
 	uidClient := managers.getUserClient(uid)
 	if uidClient != nil {
 		uidClient.send <- msg
@@ -122,6 +125,8 @@ func (c *Context) SendToUid(uid string, msg []byte) {
 
 // SendToUids 向多个uid发送消息
 func (c *Context) SendToUids(uid []string, msg []byte) {
+	managers.clientsLock.RLock()
+	defer managers.clientsLock.RUnlock()
 	for _, v := range uid {
 		uidClient := managers.getUserClient(v)
 		if uidClient != nil {
@@ -147,13 +152,16 @@ func (c *Context) SendAll(message []byte) {
 }
 
 // GetOnlineLen 获取当前在线的人数
-func GetOnlineLen() (len int) {
-	len = managers.getUOnlineLen()
-	return
+func GetOnlineLen() int {
+	managers.clientsLock.RLock()
+	defer managers.clientsLock.RUnlock()
+	return len(managers.clients)
 }
 
 // HeartbeatCheck 心跳检测
 func HeartbeatCheck(heartbeatTime uint64) {
+	managers.clientsLock.RLock()
+	defer managers.clientsLock.RUnlock()
 	for k := range managers.clients {
 		if k != nil && uint64(time.Now().Unix())-k.heartbeatTime > heartbeatTime {
 			managers.loginOut <- k
