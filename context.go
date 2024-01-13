@@ -16,7 +16,7 @@ const (
 
 type Context struct {
 	//websocket client
-	client *client
+	client *Client
 	//websocket request
 	Request map[string]interface{}
 	//router
@@ -37,7 +37,7 @@ type response struct {
 	Data   interface{} `json:"data,omitempty"`
 }
 
-func sendResponse(c *client, status int, obj interface{}) {
+func sendResponse(c *Client, status int, obj interface{}) {
 	res := response{}
 	res.Status = status
 	res.Data = obj
@@ -50,12 +50,12 @@ func sendResponse(c *client, status int, obj interface{}) {
 
 // GetUid 获取uid
 func (c *Context) GetUid() string {
-	return c.client.userId
+	return c.client.UserId
 }
 
 // IsLogin 是否登录
 func (c *Context) IsLogin() bool {
-	if c.client.userId == "" {
+	if c.client.UserId == "" {
 		return false
 	} else {
 		return true
@@ -94,8 +94,8 @@ func (c *Context) GetQuery(key string) string {
 
 // Login 登录事件
 func (c *Context) Login(uid string, time int) {
-	c.client.userId = uid
-	c.client.loginTime = uint64(time)
+	c.client.UserId = uid
+	c.client.LoginTime = uint64(time)
 	uidClient := &Login{
 		uid: uid,
 		c:   c.client,
@@ -138,7 +138,7 @@ func (c *Context) SendToUids(uid []string, msg []byte) {
 // SendOther 向其他全部成员发送数据
 func (c *Context) SendOther(message []byte) {
 	messages := &broadcastMessage{}
-	messages.From = c.client.addr
+	messages.From = c.client.Addr
 	messages.Message = message
 	managers.broadcast <- messages
 }
@@ -163,10 +163,10 @@ func HeartbeatCheck(heartbeatTime uint64) {
 	managers.clientsLock.RLock()
 	defer managers.clientsLock.RUnlock()
 	for k := range managers.clients {
-		if k != nil && uint64(time.Now().Unix())-k.heartbeatTime > heartbeatTime {
-			managers.loginOut <- k
+		if k != nil && uint64(time.Now().Unix())-k.HeartbeatTime > heartbeatTime {
+			//managers.loginOut <- k
 			managers.unregister <- k
-			k.socket.Close()
+			k.Socket.Close()
 		}
 	}
 }

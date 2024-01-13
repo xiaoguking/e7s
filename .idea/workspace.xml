@@ -4,8 +4,7 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d53818a4-918d-4d7a-8988-167cee7bdedc" name="默认变更列表" comment="修改">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="d53818a4-918d-4d7a-8988-167cee7bdedc" name="默认变更列表" comment="修改uid 类型">
       <change beforePath="$PROJECT_DIR$/manager.go" beforeDir="false" afterPath="$PROJECT_DIR$/manager.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -42,9 +41,9 @@
     <option name="indexEntireGoPath" value="false" />
   </component>
   <component name="HighlightingSettingsPerFile">
-    <setting file="file://$PROJECT_DIR$/context.go" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/service.go" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$USER_HOME$/sdk/go1.18/src/net/http/server.go" root0="SKIP_INSPECTION" />
+    <setting file="file://$USER_HOME$/go/pkg/mod/github.com/gorilla/websocket@v1.4.2/conn.go" root0="SKIP_INSPECTION" />
     <setting file="file://$USER_HOME$/sdk/go1.18/src/encoding/json/decode.go" root0="SKIP_INSPECTION" />
     <setting file="file://$USER_HOME$/go/pkg/mod/github.com/gorilla/mux@v1.8.0/mux.go" root0="SKIP_INSPECTION" />
     <setting file="file://$USER_HOME$/sdk/go1.18/src/sync/map.go" root0="SKIP_INSPECTION" />
@@ -56,6 +55,7 @@
     <setting file="file://$USER_HOME$/go/pkg/mod/github.com/fvbock/endless@v0.0.0-20170109170031-447134032cb6/endless.go" root0="SKIP_INSPECTION" />
     <setting file="file://$PROJECT_DIR$/manager.go" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/handle.go" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$USER_HOME$/sdk/go1.18/src/net/net.go" root0="SKIP_INSPECTION" />
     <setting file="file://$PROJECT_DIR$/util.go" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/.gitignore" root0="FORCE_HIGHLIGHTING" />
   </component>
@@ -84,7 +84,7 @@
     <property name="go.sdk.automatically.set" value="true" />
     <property name="go.tried.to.enable.integration.vgo.integrator" value="true" />
     <property name="go.watchers.conflict.with.on.save.actions.check.performed" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../grpc" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.detected.package.tslint" value="true" />
     <property name="node.js.path.for.package.eslint" value="project" />
@@ -221,7 +221,8 @@
     <MESSAGE value="添加一个获取参数的方法" />
     <MESSAGE value="设置" />
     <MESSAGE value="修改" />
-    <option name="LAST_COMMIT_MESSAGE" value="修改" />
+    <MESSAGE value="修改uid 类型" />
+    <option name="LAST_COMMIT_MESSAGE" value="修改uid 类型" />
   </component>
   <component name="VgoProject">
     <integration-enabled>true</integration-enabled>

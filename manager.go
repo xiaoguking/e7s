@@ -1,31 +1,39 @@
 package e7s
 
 import (
+	"fmt"
 	"sync"
 )
 
 // ClientManager 连接管理
 type clientManager struct {
-	clients     map[*client]bool       // 全部的连接
+	clients     map[*Client]bool       // 全部的连接
 	clientsLock sync.RWMutex           // 读写锁
-	users       map[string]*client     // 登录的用户
+	users       map[string]*Client     // 登录的用户
 	userLock    sync.RWMutex           // 读写锁
-	register    chan *client           // 连接连接处理
+	register    chan *Client           // 连接连接处理
 	login       chan *Login            // 用户登录处理
-	loginOut    chan *client           // 用户退出处理
-	unregister  chan *client           // 断开连接处理程序
+	loginOut    chan *Client           // 用户退出处理
+	unregister  chan *Client           // 断开连接处理程序
 	uidBan      chan string            // 断开UID连接处理程序
 	broadcast   chan *broadcastMessage // 广播 向全部成员发送数据
 }
 
+//事件中心
+type Event interface {
+	Start(*Client)
+	Connect(*Client)
+	Close(*Client)
+}
+
 func newClientManager() *clientManager {
 	return &clientManager{
-		clients:    make(map[*client]bool),
-		users:      make(map[string]*client),
-		register:   make(chan *client, 1000),
+		clients:    make(map[*Client]bool),
+		users:      make(map[string]*Client),
+		register:   make(chan *Client, 1000),
 		login:      make(chan *Login, 1000),
-		loginOut:   make(chan *client, 1000),
-		unregister: make(chan *client, 1000),
+		loginOut:   make(chan *Client, 1000),
+		unregister: make(chan *Client, 1000),
 		uidBan:     make(chan string, 1000),
 		broadcast:  make(chan *broadcastMessage, 1000),
 	}
@@ -33,7 +41,7 @@ func newClientManager() *clientManager {
 
 type Login struct {
 	uid string
-	c   *client
+	c   *Client
 }
 
 type broadcastMessage struct {
@@ -43,7 +51,7 @@ type broadcastMessage struct {
 
 /**************************  manager  ***************************************/
 
-func (manager *clientManager) inClient(client *client) (ok bool) {
+func (manager *clientManager) inClient(client *Client) (ok bool) {
 	manager.clientsLock.RLock()
 	defer manager.clientsLock.RUnlock()
 	_, ok = manager.clients[client]
@@ -54,11 +62,11 @@ func (manager *clientManager) inClient(client *client) (ok bool) {
 }
 
 // GetClients
-func (manager *clientManager) getClients() (clients map[*client]bool) {
+func (manager *clientManager) getClients() (clients map[*Client]bool) {
 
-	clients = make(map[*client]bool)
+	clients = make(map[*Client]bool)
 
-	manager.clientsRange(func(client *client, value bool) (result bool) {
+	manager.clientsRange(func(client *Client, value bool) (result bool) {
 		clients[client] = value
 
 		return true
@@ -68,7 +76,7 @@ func (manager *clientManager) getClients() (clients map[*client]bool) {
 }
 
 // 遍历
-func (manager *clientManager) clientsRange(f func(client *client, value bool) (result bool)) {
+func (manager *clientManager) clientsRange(f func(client *Client, value bool) (result bool)) {
 
 	manager.clientsLock.RLock()
 	defer manager.clientsLock.RUnlock()
@@ -92,7 +100,7 @@ func (manager *clientManager) getClientsLen() (clientsLen int) {
 }
 
 // AddClients 添加客户端
-func (manager *clientManager) addClients(client *client) {
+func (manager *clientManager) addClients(client *Client) {
 	manager.clientsLock.Lock()
 	defer manager.clientsLock.Unlock()
 
@@ -104,7 +112,7 @@ func (manager *clientManager) addClients(client *client) {
 }
 
 // DelClients 删除客户端
-func (manager *clientManager) delClients(client *client) {
+func (manager *clientManager) delClients(client *Client) {
 	manager.clientsLock.Lock()
 	defer manager.clientsLock.Unlock()
 	if _, ok := manager.clients[client]; ok {
@@ -113,7 +121,7 @@ func (manager *clientManager) delClients(client *client) {
 }
 
 // GetUserClient 获取用户的连接
-func (manager *clientManager) getUserClient(uid string) (client *client) {
+func (manager *clientManager) getUserClient(uid string) (client *Client) {
 
 	manager.userLock.RLock()
 	defer manager.userLock.RUnlock()
@@ -138,8 +146,8 @@ func (manager *clientManager) addUsers(userLogin *Login) {
 	manager.userLock.Lock()
 	defer manager.userLock.Unlock()
 	if clients, ok := manager.users[userLogin.uid]; ok {
-		clients.loginTime = 0
-		clients.userId = ""
+		clients.LoginTime = 0
+		clients.UserId = ""
 		manager.delUsers(userLogin.uid)
 		manager.users[userLogin.uid] = userLogin.c
 	} else {
@@ -157,9 +165,9 @@ func (manager *clientManager) delUsers(uid string) {
 }
 
 // GetUserClients 获取uid 连接
-func (manager *clientManager) getUserClients() (clients []*client) {
+func (manager *clientManager) getUserClients() (clients []*Client) {
 
-	clients = make([]*client, 0)
+	clients = make([]*Client, 0)
 	manager.userLock.RLock()
 	defer manager.userLock.RUnlock()
 	for _, v := range manager.users {
@@ -169,23 +177,24 @@ func (manager *clientManager) getUserClients() (clients []*client) {
 }
 
 // EventRegister 用户建立连接事件
-func (manager *clientManager) eventRegister(client *client) {
+func (manager *clientManager) eventRegister(client *Client) {
+	fmt.Print(client.Addr)
 	manager.addClients(client)
 }
 
 // EventUnregister 用户断开连接
-func (manager *clientManager) eventUnregister(client *client) {
+func (manager *clientManager) eventUnregister(client *Client) {
 	manager.delClients(client)
-	if client.userId != "" {
-		manager.delUsers(client.userId)
+	if client.UserId != "" {
+		manager.delUsers(client.UserId)
 	}
 }
 
-// EventULoginOut LoginOut 退出
-func (manager *clientManager) eventULoginOut(client *client) {
-	manager.delUsers(client.userId)
-	client.loginTime = 0
-	client.userId = ""
+// EventULoginOut LoginOut 注销
+func (manager *clientManager) eventULoginOut(client *Client) {
+	manager.delUsers(client.UserId)
+	client.LoginTime = 0
+	client.UserId = ""
 }
 
 // EventUidBan  封号
@@ -197,20 +206,22 @@ func (manager *clientManager) eventUidBan(uid string) {
 	UidClient := manager.getUserClient(uid)
 	if UidClient != nil {
 		manager.unregister <- UidClient
-		UidClient.socket.Close()
+		UidClient.Socket.Close()
 	}
 
 }
 
 // Start 管道处理程序
-func (manager *clientManager) start() {
+func (manager *clientManager) start(event Event) {
 	for {
 		select {
 		case conn := <-manager.register:
+			event.Connect(conn)
 			// 建立连接事件
 			manager.eventRegister(conn)
 		case conn := <-manager.unregister:
 			// 断开连接事件
+			event.Close(conn)
 			manager.eventUnregister(conn)
 		case userLogin := <-manager.login:
 			//登陆事件
@@ -219,13 +230,13 @@ func (manager *clientManager) start() {
 			//退出事件
 			manager.eventULoginOut(uidClient)
 		case uid := <-manager.uidBan:
-			//退出事件
+			//封号事件
 			manager.eventUidBan(uid)
 		case message := <-manager.broadcast:
 			// 广播事件
 			clients := manager.getClients()
 			for conn := range clients {
-				if message.From != "" && message.From == conn.addr {
+				if message.From != "" && message.From == conn.Addr {
 					continue
 				}
 				select {

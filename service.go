@@ -13,43 +13,43 @@ const (
 )
 
 // Client 客户端实例
-type client struct {
-	addr          string          // 客户端地址
-	socket        *websocket.Conn // 用户连接
-	clients       string          // 客户端标识
+type Client struct {
+	Addr          string          // 客户端地址
+	Socket        *websocket.Conn // 用户连接
+	Clients       string          // 客户端标识
 	send          chan []byte     // 待发送的数据
-	userId        string          // 用户Id，用户登录以后才有
-	firstTime     uint64          // 首次连接时间
-	heartbeatTime uint64          // 用户上次心跳时间
-	loginTime     uint64          // 登录时间 登录以后才有
-	token         string          //登陆token
+	UserId        string          // 用户Id，用户登录以后才有
+	FirstTime     uint64          // 首次连接时间
+	HeartbeatTime uint64          // 用户上次心跳时间
+	LoginTime     uint64          // 登录时间 登录以后才有
+	Token         string          //登陆token
 }
 
 // NewClient 初始化
-func newClient(addr string, socket *websocket.Conn, firstTime uint64, clients string) *client {
+func newClient(addr string, socket *websocket.Conn, firstTime uint64, Clients string) *Client {
 
-	return &client{
-		addr:          addr,
-		socket:        socket,
-		clients:       clients,
+	return &Client{
+		Addr:          addr,
+		Socket:        socket,
+		Clients:       Clients,
 		send:          make(chan []byte, 100),
-		firstTime:     firstTime,
-		heartbeatTime: firstTime,
+		FirstTime:     firstTime,
+		HeartbeatTime: firstTime,
 	}
 }
 
 //写消息
-func (c *client) writer() {
+func (c *Client) writer() {
 	for message := range c.send {
-		c.socket.WriteMessage(websocket.TextMessage, message)
+		c.Socket.WriteMessage(websocket.TextMessage, message)
 	}
-	c.socket.Close()
+	c.Socket.Close()
 }
 
 //读取消息
-func (c *client) reader() {
+func (c *Client) reader() {
 	for {
-		_, message, err := c.socket.ReadMessage()
+		_, message, err := c.Socket.ReadMessage()
 		if err != nil {
 			break
 		}
@@ -57,7 +57,7 @@ func (c *client) reader() {
 	}
 }
 
-func onmessage(msg []byte, c *client) {
+func onmessage(msg []byte, c *Client) {
 	defer func() {
 		if err := recover(); err != nil {
 			fmt.Println(err)
@@ -90,7 +90,7 @@ func onmessage(msg []byte, c *client) {
 	}
 
 	if value, ok := routers.getHandlers(controllers); ok {
-		c.heartbeatTime = uint64(time.Now().Unix())
+		c.HeartbeatTime = uint64(time.Now().Unix())
 		if len(routers.middle) > 0 {
 			for _, v := range routers.middle {
 				if context.Next == true && v != nil {
