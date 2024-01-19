@@ -1,7 +1,6 @@
 package e7s
 
 import (
-	"fmt"
 	"sync"
 )
 
@@ -21,7 +20,7 @@ type clientManager struct {
 
 //事件中心
 type Event interface {
-	Start(*Client)
+	Start()
 	Connect(*Client)
 	Close(*Client)
 }
@@ -178,7 +177,6 @@ func (manager *clientManager) getUserClients() (clients []*Client) {
 
 // EventRegister 用户建立连接事件
 func (manager *clientManager) eventRegister(client *Client) {
-	fmt.Print(client.Addr)
 	manager.addClients(client)
 }
 
@@ -213,6 +211,7 @@ func (manager *clientManager) eventUidBan(uid string) {
 
 // Start 管道处理程序
 func (manager *clientManager) start(event Event) {
+	event.Start()
 	for {
 		select {
 		case conn := <-manager.register:
