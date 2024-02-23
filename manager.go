@@ -215,13 +215,14 @@ func (manager *clientManager) start(event Event) {
 	for {
 		select {
 		case conn := <-manager.register:
-			event.Connect(conn)
 			// 建立连接事件
 			manager.eventRegister(conn)
+			event.Connect(conn)
 		case conn := <-manager.unregister:
 			// 断开连接事件
-			event.Close(conn)
 			manager.eventUnregister(conn)
+			event.Close(conn)
+			conn.Socket.Close()
 		case userLogin := <-manager.login:
 			//登陆事件
 			manager.addUsers(userLogin)

@@ -27,6 +27,10 @@ func handle(w http.ResponseWriter, r *http.Request) {
 	currentTime := uint64(time.Now().Unix())
 	clients := uniqueId()
 	c := newClient(addr, conn, currentTime, clients)
+	c.Socket.SetCloseHandler(func(code int, text string) error {
+		managers.unregister <- c
+		return nil
+	})
 	managers.register <- c
 	go c.reader()
 	c.writer()
