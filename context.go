@@ -114,7 +114,7 @@ func (c *Context) BanUid(uid string) {
 }
 
 // SendToUid 单独向uid发送消息
-func (c *Context) SendToUid(uid string, msg []byte) {
+func SendToUid(uid string, msg []byte) {
 	managers.clientsLock.RLock()
 	defer managers.clientsLock.RUnlock()
 	uidClient := managers.getUserClient(uid)
@@ -124,7 +124,7 @@ func (c *Context) SendToUid(uid string, msg []byte) {
 }
 
 // SendToUids 向多个uid发送消息
-func (c *Context) SendToUids(uid []string, msg []byte) {
+func SendToUids(uid []string, msg []byte) {
 	managers.clientsLock.RLock()
 	defer managers.clientsLock.RUnlock()
 	for _, v := range uid {
@@ -136,17 +136,13 @@ func (c *Context) SendToUids(uid []string, msg []byte) {
 }
 
 // SendOther 向其他全部成员发送数据
-func (c *Context) SendOther(message []byte) {
-	messages := &broadcastMessage{}
-	messages.From = c.client.Addr
-	messages.Message = message
-	managers.broadcast <- messages
+func SendOther(message []byte) {
 }
 
 // SendAll 发送广播
-func (c *Context) SendAll(message []byte) {
+func SendAll(form string, message []byte) {
 	messages := &broadcastMessage{}
-	messages.From = ""
+	messages.From = form
 	messages.Message = message
 	managers.broadcast <- messages
 }
